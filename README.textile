@@ -1,0 +1,18 @@
+h1. ADC testing
+
+This is a collection of programs to measure ADC characteristics
+
+h2. Prerequisites
+
+Python must be installed.
+
+wx-python must be installed. On Ubuntu, you can install them as indicated in the following url:
+
+http://wiki.wxpython.org/InstallingOnUbuntuOrDebian
+
+
+h2. Execution
+
+<pre>
+python adctest.py
+</pre>
