@@ -13,19 +13,13 @@ class View(wx.Frame):
 
         self.moneyCtrl = ctrl
         ctrl.SetEditable(False)
-        self.SetSizer(sizer)
-
-    def SetMoney(self, money):
-        self.moneyCtrl.SetValue(str(money))
-
-class ChangerWidget(wx.Frame):
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, title="Main View")
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        
         self.add = wx.Button(self, label="Add Money")
         self.remove = wx.Button(self, label="Remove Money")
         sizer.Add(self.add, 0, wx.EXPAND | wx.ALL)
         sizer.Add(self.remove, 0, wx.EXPAND | wx.ALL)
+        
         self.SetSizer(sizer)
 
+    def SetMoney(self, money):
+        self.moneyCtrl.SetValue(str(money))
