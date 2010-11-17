@@ -1,8 +1,8 @@
 import wx
 from wx.lib.pubsub import Publisher as pub
 
-from model import Model
-from view import View
+from Model import Model
+from View import View
 
 class Controller:
     def __init__(self, app):
@@ -10,11 +10,11 @@ class Controller:
 
         #set up the first frame which displays the current Model value
         self.view = View(None)
-        self.view.SetMoney(self.model.myMoney)
+        #self.view.SetMoney(self.model.myMoney)
 
         #set up the second frame which allows the user to modify the Model's value
-        self.view.add.Bind(wx.EVT_BUTTON, self.AddMoney)
-        self.view.remove.Bind(wx.EVT_BUTTON, self.RemoveMoney)
+        #self.view.add.Bind(wx.EVT_BUTTON, self.AddMoney)
+        #self.view.remove.Bind(wx.EVT_BUTTON, self.RemoveMoney)
         #subscribe to all "MONEY CHANGED" messages from the Model
         #to subscribe to ALL messages (topics), omit the second argument below
         pub.subscribe(self.MoneyChanged, "MONEY CHANGED")

@@ -2,7 +2,7 @@
 # requirements: wxwindows.
 
 import wx
-from controller import Controller
+from Controller import Controller
 
 app = wx.App(False)
 Controller(app)
