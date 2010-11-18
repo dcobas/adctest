@@ -2,8 +2,6 @@ import wx
 import os
 from wx.lib.pubsub import Publisher as pub
 
-
-
 class Tab(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -20,16 +18,24 @@ class Tab1(Tab):
         filePathLabel = wx.StaticText(self, -1, "Please choose a signal file")
         self.filePathCtrl = wx.TextCtrl(self)
         self.fileOpenButton = wx.Button(self, -1, "...", wx.DefaultPosition, wx.Size(30,30))
-        self.Bind(wx.EVT_BUTTON, self.OpenFileDialog, self.fileOpenButton)
-               
+        self.fileParseButton = wx.Button(self, -1, "Go!", wx.DefaultPosition)
+        self.fileOpenButton.Bind(wx.EVT_BUTTON, self.OpenFileDialog)
         
-        filePathControlsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        filePathControlsSizer.Add(self.filePathCtrl, 1, wx.EXPAND)
-        filePathControlsSizer.Add(self.fileOpenButton, 0, wx.EXPAND)
+        # sizer for the textbox and button
+        filePathCtrlsSizer = wx.BoxSizer(wx.HORIZONTAL)
+        filePathCtrlsSizer.Add(self.filePathCtrl, 1, wx.EXPAND)
+        filePathCtrlsSizer.Add(self.fileOpenButton, 0, wx.EXPAND)
         
+        # sizer that aligns the Parse button to the right
+        goButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        goButtonSizer.Add(self.fileParseButton, 0, wx.EXPAND)
+        
+        # sizer includes controls + label on top
         filePathSizer = wx.BoxSizer(wx.VERTICAL)
         filePathSizer.Add(filePathLabel, 0, wx.EXPAND)
-        filePathSizer.Add(filePathControlsSizer, 0, wx.EXPAND)
+        filePathSizer.Add(filePathCtrlsSizer, 0, wx.EXPAND)
+        filePathSizer.Add(self.fileParseButton, 0, wx.ALIGN_CENTER )
+
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(filePathSizer, 1, wx.EXPAND)
@@ -37,19 +43,27 @@ class Tab1(Tab):
         self.padding.Add(sizer, 1, wx.EXPAND)
 
     def OpenFileDialog(self, evt):
+        
+        prevPath = self.filePathCtrl.GetValue()
+        
+        if len(prevPath) > 0:
+           defaultDir = os.path.dirname(prevPath)
+        else:
+           defaultDir = os.getcwd()
+        
         dlg = wx.FileDialog(
             self, message="Choose a file",
-            defaultDir=os.getcwd(), 
+            defaultDir=defaultDir, 
             defaultFile="",
             wildcard="All files (*.*)|*.*",
             style=wx.OPEN
             )
 
         # Show the dialog and retrieve the user response. If it is the OK response, 
-        # process the data.
+        # Parse the data.
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print('Path selected: %s' % path)
+            self.filePathCtrl.SetValue(path)
         dlg.Destroy()
     
     
@@ -81,6 +95,11 @@ class View(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(notebook, 1, wx.ALL|wx.EXPAND, 5)
         self.SetSizer(sizer)
+
+    def ShowException(self, title, message):
+        dlg = wx.MessageDialog(self, message, title, wx.OK | wx.ICON_ERROR)
+        dlg.ShowModal()
+        dlg.Destroy()
     
     
 

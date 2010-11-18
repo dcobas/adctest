@@ -11,6 +11,8 @@ class Controller:
         #set up the first frame which displays the current Model value
         self.view = View(None)
         #self.view.SetMoney(self.model.myMoney)
+        
+        self.view.tab1.fileParseButton.Bind(wx.EVT_BUTTON, self.ParseFile)
 
         #set up the second frame which allows the user to modify the Model's value
         #self.view.add.Bind(wx.EVT_BUTTON, self.AddMoney)
@@ -20,8 +22,14 @@ class Controller:
         pub.subscribe(self.MoneyChanged, "MONEY CHANGED")
 
         self.view.Show()
-    def AddMoney(self, evt):
-        self.model.addMoney(10)
+    def ParseFile(self, evt):
+        try:
+            self.model.ParseFile(self.view.tab1.filePathCtrl.GetValue())
+          
+        except Exception as exception:
+            self.view.ShowException('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
+        
+        
 
     def RemoveMoney(self, evt):
         self.model.removeMoney(10)
