@@ -1,6 +1,25 @@
+# FIXME the following two lines raise an error
+# import wxversion
+# wxversion.ensureMinimal('2.8')
+# Used to guarantee to use at least Wx2.8
 import wx
-import os
 from wx.lib.pubsub import Publisher as pub
+
+import matplotlib
+matplotlib.use('WX')
+
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+from matplotlib.backends.backend_wxagg import NavigationToolbar2Wx as Toolbar
+from matplotlib.figure import Figure
+
+
+import os.path
+
+
+#FIXME remove when unused
+from numpy import arange, sin, pi
+
+
 
 class Tab(wx.Panel):
     def __init__(self, parent):
@@ -21,6 +40,16 @@ class Tab1(Tab):
         self.fileParseButton = wx.Button(self, -1, "Go!", wx.DefaultPosition)
         self.fileOpenButton.Bind(wx.EVT_BUTTON, self.OpenFileDialog)
         
+        #matplotlib canvas
+        self.figure = Figure()
+        self.axes = self.figure.add_subplot(111)
+        t = arange(0.0,3.0,0.01)
+        s = sin(2*pi*t)
+
+        self.axes.plot(t,s)
+        self.canvas = FigureCanvas(self, -1, self.figure)
+        
+        
         # sizer for the textbox and button
         filePathCtrlsSizer = wx.BoxSizer(wx.HORIZONTAL)
         filePathCtrlsSizer.Add(self.filePathCtrl, 1, wx.EXPAND)
@@ -30,17 +59,19 @@ class Tab1(Tab):
         goButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         goButtonSizer.Add(self.fileParseButton, 0, wx.EXPAND)
         
-        # sizer includes controls + label on top
-        filePathSizer = wx.BoxSizer(wx.VERTICAL)
-        filePathSizer.Add(filePathLabel, 0, wx.EXPAND)
-        filePathSizer.Add(filePathCtrlsSizer, 0, wx.EXPAND)
-        filePathSizer.Add(self.fileParseButton, 0, wx.ALIGN_CENTER )
+        # sizer includes controls + label on top + button + graph
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(filePathLabel, 0, wx.EXPAND)
+        mainSizer.Add(filePathCtrlsSizer, 0, wx.EXPAND)
+        mainSizer.Add(self.fileParseButton, 0, wx.ALIGN_CENTER )
+        mainSizer.Add(self.canvas, 1, wx.EXPAND)
 
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(filePathSizer, 1, wx.EXPAND)
+        sizer.Add(mainSizer, 1, wx.EXPAND)
         
-        self.padding.Add(sizer, 1, wx.EXPAND)
+        self.padding.Add(sizer, 1, wx.EXPAND)   
+        
 
     def OpenFileDialog(self, evt):
         
@@ -95,6 +126,7 @@ class View(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(notebook, 1, wx.ALL|wx.EXPAND, 5)
         self.SetSizer(sizer)
+        self.Fit()    
 
     def ShowException(self, title, message):
         dlg = wx.MessageDialog(self, message, title, wx.OK | wx.ICON_ERROR)

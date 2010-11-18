@@ -28,18 +28,18 @@ class Signal(object):
     """a representation of a time-domain sampled signal
     """
 
-    def __init__(self, data, nbits, rate):
+    def __init__(self, nbits, rate, data):
         """initialize a signal object
 
-        data: an array of samples (usually nbits-long words, stored in
-            a numpy array)
         nbits: bit width of the sample values
         rate: sampling rate of sample production
+        data: an array of samples (usually nbits-long words, stored in
+              a numpy array)
         """
 
-        self.data = data
         self.nbits = nbits
         self.rate = rate
+        self.data = data
 
     def histogram(self):
        """Compute histogram of a sampled signal

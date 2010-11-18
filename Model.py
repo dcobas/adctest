@@ -1,35 +1,41 @@
-import wx
 import ConfigParser
 import string
+
 from wx.lib.pubsub import Publisher as pub
+
+from Signal import Signal
+from FFTSignal import FFTSignal
 
 class Model:
     def __init__(self):
-        self.myMoney = 0
+        self.signal = None
+        self.fftSignal = None
         
     def ParseFile(self, path):
       
-      config = ConfigParser.RawConfigParser()
-
-      config.read(path)
+        self.signal = None
+        self.fftSignal = None
       
-      nbits = config.getint('SIGNAL', 'nbits')
-      rate = config.getint('SIGNAL', 'rate')
-      dataString = config.get('SIGNAL', 'data').split('\n')
-      data = map(string.atoi, dataString)
+        config = ConfigParser.RawConfigParser()
+        config.read(path)
+        
+        nbits = config.getint('SIGNAL', 'nbits')
+        rate = config.getint('SIGNAL', 'rate')
+        dataString = config.get('SIGNAL', 'data').split('\n')
+        data = map(string.atoi, dataString)
+        
+        self.signal = Signal(nbits, rate, data)
+        self.fftSignal = self.signal.FFT(1,1) # FIXME change params here
+        
+        print "nbits: %d" % self.signal.nbits
+        print "rate: %d" % self.signal.rate
+        print "data: %s" % str(self.signal.data)
      
-      print "nbits: %d" % nbits
-      print "rate: %d" % rate
-      print "data: "
-      print data 
-
-    def addMoney(self, value):
-        self.myMoney += value
-        #now tell anyone who cares that the value has been changed
-        pub.sendMessage("MONEY CHANGED", self.myMoney)
-
-    def removeMoney(self, value):
-        self.myMoney -= value
-        #now tell anyone who cares that the value has been changed
-        pub.sendMessage("MONEY CHANGED", self.myMoney)
+    def GetData(self):
+        if self.model is None:
+            return []
+        else:
+            return self.model.data
+     
+     
 
