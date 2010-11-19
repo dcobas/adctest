@@ -28,6 +28,7 @@ class Controller:
             self.model.ParseFile(self.view.tab1.filePathCtrl.GetValue())
           
         except Exception as exception:
+            pub.sendMessage("SIGNAL CHANGED")
             self.view.ShowException('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
         
     def FileLoaded(self, message):
