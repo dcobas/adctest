@@ -5,21 +5,9 @@
 import wx
 from wx.lib.pubsub import Publisher as pub
 
-import matplotlib
-matplotlib.use('WX')
-
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
-from matplotlib.backends.backend_wxagg import NavigationToolbar2Wx as Toolbar
-from matplotlib.figure import Figure
-
-
 import os.path
 
-
-#FIXME remove when unused
-from numpy import arange, sin, pi
-
-
+import Plot # for graphs
 
 class Tab(wx.Panel):
     def __init__(self, parent):
@@ -34,6 +22,7 @@ class Tab1(Tab):
     def __init__(self, parent):
         Tab.__init__(self, parent)
         
+        # buttons / controls
         filePathLabel = wx.StaticText(self, -1, "Please choose a signal file")
         self.filePathCtrl = wx.TextCtrl(self)
         self.fileOpenButton = wx.Button(self, -1, "...", wx.DefaultPosition, wx.Size(30,30))
@@ -41,14 +30,7 @@ class Tab1(Tab):
         self.fileOpenButton.Bind(wx.EVT_BUTTON, self.OpenFileDialog)
         
         #matplotlib canvas
-        self.figure = Figure()
-        self.axes = self.figure.add_subplot(111)
-        t = arange(0.0,3.0,0.01)
-        s = sin(2*pi*t)
-
-        self.axes.plot(t,s)
-        self.canvas = FigureCanvas(self, -1, self.figure)
-        
+        self.signalPlot = Plot.Signal(self)
         
         # sizer for the textbox and button
         filePathCtrlsSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -64,14 +46,15 @@ class Tab1(Tab):
         mainSizer.Add(filePathLabel, 0, wx.EXPAND)
         mainSizer.Add(filePathCtrlsSizer, 0, wx.EXPAND)
         mainSizer.Add(self.fileParseButton, 0, wx.ALIGN_CENTER )
-        mainSizer.Add(self.canvas, 1, wx.EXPAND)
-
+        mainSizer.Add(self.signalPlot, 1, wx.EXPAND)
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(mainSizer, 1, wx.EXPAND)
         
-        self.padding.Add(sizer, 1, wx.EXPAND)   
-        
+        self.padding.Add(sizer, 1, wx.EXPAND)  
+    
+    def SignalChanged(self, model):
+        self.signalPlot.update(model.GetData())
 
     def OpenFileDialog(self, evt):
         
@@ -95,7 +78,10 @@ class Tab1(Tab):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.filePathCtrl.SetValue(path)
+            pub.sendMessage("FILE PATH CHANGED")
         dlg.Destroy()
+        
+
     
     
         
@@ -113,6 +99,8 @@ class Tab3(Tab):
 class View(wx.Frame):
     def __init__(self, parent):
         wx.Frame.__init__(self, parent, title="Main View")
+        
+        self.SetMinSize(wx.Size(800, 600))
 
         notebook = wx.Notebook(self)
 
@@ -132,6 +120,10 @@ class View(wx.Frame):
         dlg = wx.MessageDialog(self, message, title, wx.OK | wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
+    
+    def SignalChanged(self, model):
+        self.tab1.SignalChanged(model)
+        
     
     
 

@@ -17,14 +17,12 @@ class Controller:
         
         self.view.tab1.fileParseButton.Bind(wx.EVT_BUTTON, self.ParseFile)
 
-        #set up the second frame which allows the user to modify the Model's value
-        #self.view.add.Bind(wx.EVT_BUTTON, self.AddMoney)
-        #self.view.remove.Bind(wx.EVT_BUTTON, self.RemoveMoney)
-        #subscribe to all "MONEY CHANGED" messages from the Model
-        #to subscribe to ALL messages (topics), omit the second argument below
-        pub.subscribe(self.MoneyChanged, "MONEY CHANGED")
+        #subscribe to all "SIGNAL CHANGED" messages from the Model
+        pub.subscribe(self.FileLoaded, "FILE PATH CHANGED")
+        pub.subscribe(self.SignalChanged, "SIGNAL CHANGED")
 
         self.view.Show()
+        
     def ParseFile(self, evt):
         try:
             self.model.ParseFile(self.view.tab1.filePathCtrl.GetValue())
@@ -32,18 +30,15 @@ class Controller:
         except Exception as exception:
             self.view.ShowException('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
         
-        
-
-    def RemoveMoney(self, evt):
-        self.model.removeMoney(10)
-
-    def MoneyChanged(self, message):
+    def FileLoaded(self, message):
         """
-        This method is the handler for "MONEY CHANGED" messages,
-        which pubsub will call as messages are sent from the model.
-
-        We already know the topic is "MONEY CHANGED", but if we
-        didn't, message.topic would tell us.
+        This method is the handler for "FILE PATH CHANGED" messages, which pubsub will call as messages are sent from the model.
         """
-        self.view.SetMoney(message.data)
+        self.ParseFile(None)
+    
+    def SignalChanged(self, message):
+        """
+        This method is the handler for "SIGNAL CHANGED" messages, which pubsub will call as messages are sent from the model.
+        """
+        self.view.SignalChanged(self.model)
 

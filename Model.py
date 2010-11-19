@@ -27,15 +27,14 @@ class Model:
         self.signal = Signal(nbits, rate, data)
         self.fftSignal = self.signal.FFT(1,1) # FIXME change params here
         
-        print "nbits: %d" % self.signal.nbits
-        print "rate: %d" % self.signal.rate
-        print "data: %s" % str(self.signal.data)
+        pub.sendMessage("SIGNAL CHANGED")
+
      
     def GetData(self):
-        if self.model is None:
+        if self.signal is None:
             return []
         else:
-            return self.model.data
+            return self.signal.data
      
      
 
