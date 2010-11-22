@@ -27,10 +27,12 @@ class Tab1(Tab):
         self.filePathCtrl = wx.TextCtrl(self)
         self.fileOpenButton = wx.Button(self, -1, "...", wx.DefaultPosition, wx.Size(30,30))
         self.fileParseButton = wx.Button(self, -1, "Go!", wx.DefaultPosition)
-        self.fileOpenButton.Bind(wx.EVT_BUTTON, self.OpenFileDialog)
         
-        #matplotlib canvas
+        # matplotlib canvas
         self.signalPlot = Plot.Signal(self)
+        
+        # Bind actions to the two buttons
+        self.fileOpenButton.Bind(wx.EVT_BUTTON, self.OpenFileDialog)
         
         # sizer for the textbox and button
         filePathCtrlsSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -48,6 +50,7 @@ class Tab1(Tab):
         mainSizer.Add(self.fileParseButton, 0, wx.ALIGN_CENTER )
         mainSizer.Add(self.signalPlot, 1, wx.EXPAND)
         
+        # sizer that makes the 'main sizer' expand to cover all the width available
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(mainSizer, 1, wx.EXPAND)
         
@@ -56,7 +59,7 @@ class Tab1(Tab):
     def SignalChanged(self, model):
         self.signalPlot.update(model.GetData())
 
-    def OpenFileDialog(self, evt):
+    def OpenFileDialog(self, evt=None):
         
         prevPath = self.filePathCtrl.GetValue()
         
@@ -78,12 +81,7 @@ class Tab1(Tab):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.filePathCtrl.SetValue(path)
-            pub.sendMessage("FILE PATH CHANGED")
         dlg.Destroy()
-        
-
-    
-    
         
 class Tab2(Tab):
 
@@ -97,8 +95,8 @@ class Tab3(Tab):
         
         
 class View(wx.Frame):
-    def __init__(self, parent):
-        wx.Frame.__init__(self, parent, title="Main View")
+    def __init__(self):
+        wx.Frame.__init__(self, None, title="Main View")
         
         self.SetMinSize(wx.Size(800, 600))
 
@@ -123,6 +121,7 @@ class View(wx.Frame):
     
     def SignalChanged(self, model):
         self.tab1.SignalChanged(model)
+        # TODO: add the same form tab2 and tab3, and implement the changes
         
     
     

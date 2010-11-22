@@ -28,7 +28,6 @@ class Model:
         self.fftSignal = self.signal.FFT(1,1) # FIXME change params here
         
         pub.sendMessage("SIGNAL CHANGED")
-
      
     def GetData(self):
         if self.signal is None:

@@ -9,33 +9,30 @@ from View import View
 
 class Controller:
     def __init__(self, app):
+        # initialize the model and view
+        # * The model handles all the data, and signal-related operations
+        # * The view handles all the data visualization
         self.model = Model()
+        self.view = View()
 
-        #set up the first frame which displays the current Model value
-        self.view = View(None)
-        #self.view.SetMoney(self.model.myMoney)
+        self.view.tab1.fileParseButton.Bind(wx.EVT_BUTTON, self.FilePathChanged)
         
-        self.view.tab1.fileParseButton.Bind(wx.EVT_BUTTON, self.ParseFile)
-
-        #subscribe to all "SIGNAL CHANGED" messages from the Model
-        pub.subscribe(self.FileLoaded, "FILE PATH CHANGED")
+        # subscribe to all "SIGNAL CHANGED" messages from the Model
         pub.subscribe(self.SignalChanged, "SIGNAL CHANGED")
 
         self.view.Show()
         
-    def ParseFile(self, evt):
+    def FilePathChanged(self, evt):
+        """
+        This method is the handler for "FILE PATH CHANGED" messages, which pubsub will call as messages are sent from the model.
+        """
         try:
             self.model.ParseFile(self.view.tab1.filePathCtrl.GetValue())
           
         except Exception as exception:
-            pub.sendMessage("SIGNAL CHANGED")
             self.view.ShowException('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
-        
-    def FileLoaded(self, message):
-        """
-        This method is the handler for "FILE PATH CHANGED" messages, which pubsub will call as messages are sent from the model.
-        """
-        self.ParseFile(None)
+            # ensure that the SIGNAL CHANGED event is raised no matter what. This will 'blank' the view, as the model has no data
+            pub.sendMessage("SIGNAL CHANGED")
     
     def SignalChanged(self, message):
         """
