@@ -5,6 +5,9 @@ from Model import Model
 from View import View
 
 class Controller:
+    """ a 'middleman' between the View (visual aspects) and the Model (information) of the application.
+        It ensures decoupling between both.
+    """
     def __init__(self, app):
         # initialize the model and view
         # * The model handles all the data, and signal-related operations

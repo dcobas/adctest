@@ -7,6 +7,11 @@ from Signal import Signal
 from FFTSignal import FFTSignal
 
 class Model:
+    """ Holds all the pertinent information regarding the signals.
+        It also caches the information so it isn't re-calculated unnecesarily (for example when re-dimensioning windows)
+        It communicates with the Controller by emiting messages.
+    """
+
     FFT_METHODS = ['process_gain', 'harmonic_peaks', 'noise_floor', 'SFDR', 'SINAD', 'THD', 'SNR', 'ENOB']
     INTEGER_METHODS = ['noise_floor', 'SFDR', 'SINAD', 'THD', 'SNR', 'ENOB']
 
@@ -17,6 +22,9 @@ class Model:
         self.cache_fft_signal()
         
     def parse_file(self, path, max_peaks=0, dB = None, time_domain = None):
+        """ Invoked when a new file needs to be parsed. Will raise an exception if the file contains syntax errors
+            Emits the message 'SIGNAL CHANGED' if the file was cached succesfully
+        """
       
         self.signal = None
         self.fft_signal = None
@@ -40,6 +48,9 @@ class Model:
     
     
     def cache_signal(self):
+        """ Invokes all methods in Signal and caches their result for later use (mainly window resizing)
+            Resets values to safe values (0, []) if there was an error while processing the signal definition file
+        """
     
         if self.signal is None:
           self.data = []
@@ -53,6 +64,9 @@ class Model:
           self.histogram, self.ideal_histogram = self.signal.histogram(), self.signal.ideal_histogram()
     
     def cache_fft_signal(self, max_peaks=0):
+        """ Invokes all methods in FFTSignal and caches their result for later use (mainly window resizing)
+            Resets values to safe values (0, []) if there was an error while processing the signal definition file
+        """
 
         if self.fft_signal is None:
             self.fft = []
