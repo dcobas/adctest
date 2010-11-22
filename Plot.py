@@ -1,7 +1,3 @@
-# FIXME the following two lines raise an error
-# import wxversion
-# wxversion.ensureMinimal('2.8')
-# Used to guarantee to use at least Wx2.8
 import wx
 from wx.lib.pubsub import Publisher as pub
 

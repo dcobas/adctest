@@ -1,7 +1,3 @@
-# FIXME the following two lines raise an error
-# import wxversion
-# wxversion.ensureMinimal('2.8')
-# Used to guarantee to use at least Wx2.8
 import wx
 from wx.lib.pubsub import Publisher as pub
 
@@ -23,49 +19,37 @@ class Tab1(Tab):
         Tab.__init__(self, parent)
         
         # buttons / controls
-        filePathLabel = wx.StaticText(self, -1, "Please choose a signal file")
-        self.filePathCtrl = wx.TextCtrl(self)
-        self.fileOpenButton = wx.Button(self, -1, "...", wx.DefaultPosition, wx.Size(30,30))
-        self.fileParseButton = wx.Button(self, -1, "Go!", wx.DefaultPosition)
+        path_label = wx.StaticText(self, -1, "Choose a signal file:")
+        self.path_ctrl = wx.TextCtrl(self)
+        self.open_button = wx.Button(self, -1, "...", wx.DefaultPosition, wx.Size(30,30))
+        self.parse_button = wx.Button(self, -1, "Parse file", wx.DefaultPosition, wx.Size(120,30))
         
         # matplotlib canvas
-        self.signalPlot = Plot.Signal(self)
+        self.signal_plot = Plot.Signal(self)
         
         # Bind actions to the two buttons
-        self.fileOpenButton.Bind(wx.EVT_BUTTON, self.open_file_dialog)
-        self.fileParseButton.Bind(wx.EVT_BUTTON, self.send_file_path_changed_message)
+        self.open_button.Bind(wx.EVT_BUTTON, self.open_dialog)
+        self.parse_button.Bind(wx.EVT_BUTTON, self.send_path_changed_message)
         
-        # sizer for the textbox and button
-        filePathCtrlsSizer = wx.BoxSizer(wx.HORIZONTAL)
-        filePathCtrlsSizer.Add(self.filePathCtrl, 1, wx.EXPAND)
-        filePathCtrlsSizer.Add(self.fileOpenButton, 0, wx.EXPAND)
-        
-        # sizer that aligns the Parse button to the right
-        goButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        goButtonSizer.Add(self.fileParseButton, 0, wx.EXPAND)
-        
-        # sizer includes controls + label on top + button + graph
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(filePathLabel, 0, wx.EXPAND)
-        mainSizer.Add(filePathCtrlsSizer, 0, wx.EXPAND)
-        mainSizer.Add(self.fileParseButton, 0, wx.ALIGN_CENTER )
-        mainSizer.Add(self.signalPlot, 1, wx.EXPAND)
-        
-        # sizer that makes the 'main sizer' expand to cover all the width available
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(mainSizer, 1, wx.EXPAND)
-        
-        self.padding.Add(sizer, 1, wx.EXPAND)  
+        # sizer for the textbox and buttons
+        ctrls_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        ctrls_sizer.Add(self.path_ctrl, 1, wx.EXPAND)
+        ctrls_sizer.Add(self.open_button, 0, wx.EXPAND)
+        ctrls_sizer.Add(self.parse_button, 0, wx.EXPAND)
+
+        self.padding.Add(path_label, 0, wx.EXPAND)
+        self.padding.Add(ctrls_sizer, 0, wx.EXPAND)
+        self.padding.Add(self.signal_plot, 1, wx.EXPAND)
     
     def signal_changed(self, model):
-        self.signalPlot.update(model.data)
+        self.signal_plot.update(model.data)
     
-    def send_file_path_changed_message(self, evt=None):
-        pub.sendMessage("FILE PATH CHANGED", self.filePathCtrl.GetValue())
+    def send_path_changed_message(self, evt=None):
+        pub.sendMessage("FILE PATH CHANGED", self.path_ctrl.GetValue())
 
-    def open_file_dialog(self, evt=None):
+    def open_dialog(self, evt=None):
         
-        prevPath = self.filePathCtrl.GetValue()
+        prevPath = self.path_ctrl.GetValue()
         
         if len(prevPath) > 0:
            defaultDir = os.path.dirname(prevPath)
@@ -84,8 +68,8 @@ class Tab1(Tab):
         # Parse the data.
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.filePathCtrl.SetValue(path)
-            self.send_file_path_changed_message()
+            self.path_ctrl.SetValue(path)
+            self.send_path_changed_message()
         dlg.Destroy()
         
 class Tab2(Tab):
@@ -94,40 +78,39 @@ class Tab2(Tab):
         Tab.__init__(self, parent)
         
         # buttons / controls
-        self.INLLabel = wx.StaticText(self, -1, "INL Max: -")
-        self.DNLLabel = wx.StaticText(self, -1, "DNL Max: -")
+        self.max_INL_label = wx.StaticText(self, -1, "Max INL: 0%")
+        self.max_DNL_label = wx.StaticText(self, -1, "Max DNL: 0%")
 
         # plots
-        self.INLPlot = Plot.DNL(self)
-        self.DNLPlot = Plot.INL(self)
-        self.HistogramPlot = Plot.Histogram(self)
+        self.INL_plot = Plot.DNL(self)
+        self.DNL_plot = Plot.INL(self)
+        self.histogram_plot = Plot.Histogram(self)
         
         # Put label on top of INL graph
-        INLSizer = wx.BoxSizer(wx.VERTICAL)
-        INLSizer.Add(self.INLLabel, 0, wx.EXPAND)
-        INLSizer.Add(self.INLPlot, 1, wx.EXPAND)
+        INL_sizer = wx.BoxSizer(wx.VERTICAL)
+        INL_sizer.Add(self.max_INL_label, 0, wx.EXPAND)
+        INL_sizer.Add(self.INL_plot, 1, wx.EXPAND)
         
         # Put label on top of DNL graph
-        DNLSizer = wx.BoxSizer(wx.VERTICAL)
-        DNLSizer.Add(self.DNLLabel, 0, wx.EXPAND)
-        DNLSizer.Add(self.DNLPlot, 1, wx.EXPAND)
+        DNL_sizer = wx.BoxSizer(wx.VERTICAL)
+        DNL_sizer.Add(self.max_DNL_label, 0, wx.EXPAND)
+        DNL_sizer.Add(self.DNL_plot, 1, wx.EXPAND)
         
         # Put INL to the left and DNL to the right
-        INLDNLSizer = wx.BoxSizer(wx.HORIZONTAL)
-        INLDNLSizer.Add(INLSizer, 1, wx.EXPAND)
-        INLDNLSizer.Add(DNLSizer, 1, wx.EXPAND)
+        INLDNL_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        INLDNL_sizer.Add(INL_sizer, 1, wx.EXPAND)
+        INLDNL_sizer.Add(DNL_sizer, 1, wx.EXPAND)
         
         # Put INL/DNL on the top, Histogram to the bottom
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(INLDNLSizer, 1, wx.EXPAND)
-        sizer.Add(self.HistogramPlot, 1, wx.EXPAND)
-        
-        self.padding.Add(sizer, 1, wx.EXPAND)
+        self.padding.Add(INLDNL_sizer, 1, wx.EXPAND)
+        self.padding.Add(self.histogram_plot, 1, wx.EXPAND)
     
     def signal_changed(self, model):
-        self.INLPlot.update(model.INL())
-        self.DNLPlot.update(model.DNL())
-        self.HistogramPlot.update(model.histogram(), model.ideal_histogram())
+        self.max_INL_label.SetLabel("Max INL: %d %%" % round(model.max_INL * 100, 0))
+        self.max_DNL_label.SetLabel("Max DNL: %d %%" % round(model.max_DNL * 100, 0))
+        self.INL_plot.update(model.INL)
+        self.DNL_plot.update(model.DNL)
+        self.histogram_plot.update(model.histogram, model.ideal_histogram)
 
 
 class Tab3(Tab):
@@ -163,6 +146,7 @@ class View(wx.Frame):
     
     def signal_changed(self, model):
         self.tab1.signal_changed(model)
+        self.tab2.signal_changed(model)
         # TODO: add the same form tab2 and tab3, and implement the changes
         
     

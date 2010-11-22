@@ -43,13 +43,13 @@ class Model:
     
         if self.signal is None:
           self.data = []
-          self.INL, self.INL_max = [], 0
-          self.DNL, self.DNL_max = [], 0
+          self.INL, self.max_INL = [], 0
+          self.DNL, self.max_DNL = [], 0
           self.histogram, self.ideal_histogram = [], []
         else:
           self.data = self.signal.data
-          self.INL, self.INL_max = self.signal.INL()
-          self.DNL, self.DNL_max = self.signal.DNL()
+          self.INL, self.max_INL = self.signal.INL()
+          self.DNL, self.max_DNL = self.signal.DNL()
           self.histogram, self.ideal_histogram = self.signal.histogram(), self.signal.ideal_histogram()
     
     def cache_fft_signal(self, max_peaks=0):

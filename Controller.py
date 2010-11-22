@@ -1,6 +1,3 @@
-# FIXME the following two lines raise an error
-# import wxversion
-# wxversion.ensureMinimal('2.8')
 import wx
 from wx.lib.pubsub import Publisher as pub
 
@@ -27,11 +24,11 @@ class Controller:
         """
         This method is the handler for "FILE PATH CHANGED" messages, which pubsub will call as messages are sent from the model.
         """
-        try:
-            self.model.parse_file(message.data)
+        #try:
+        self.model.parse_file(message.data)
           
-        except Exception as exception:
-            self.view.show_exception('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
+        #except Exception as exception:
+        #    self.view.show_exception('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
     
     def signal_changed(self, message):
         """

@@ -70,7 +70,7 @@ class Signal(object):
             - dnl is an array of 2**signal.nbits real values and
             - total is a real value (computed from dnl)
         """
-        return [3] * (2 * self.nbits), 3
+        return [3] * (2 * self.nbits), 0.3
         
 
     def INL(self):
@@ -80,7 +80,7 @@ class Signal(object):
             - inl is an array of 2**signal.nbits real values and
             - total is a real (computed from inl)
         """
-        return [4] * (2 * self.nbits), 4
+        return [4] * (2 * self.nbits), 0.4
 
     def FFT(self, navg, window):
         """Compute the amplitudes (in dB) of the FFT of signal, averaging navg
