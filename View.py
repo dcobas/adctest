@@ -57,7 +57,7 @@ class Tab1(Tab):
         self.padding.Add(sizer, 1, wx.EXPAND)  
     
     def SignalChanged(self, model):
-        self.signalPlot.update(model.GetData())
+        self.signalPlot.update(model.data)
 
     def OpenFileDialog(self, evt=None):
         

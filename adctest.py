@@ -6,7 +6,7 @@ import wx
 from Controller import Controller
 
 app = wx.App(False)
-Controller(app)
+controller = Controller(app)
 app.MainLoop()
 
 

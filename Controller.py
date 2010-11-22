@@ -27,7 +27,7 @@ class Controller:
         This method is the handler for "FILE PATH CHANGED" messages, which pubsub will call as messages are sent from the model.
         """
         try:
-            self.model.ParseFile(self.view.tab1.filePathCtrl.GetValue())
+            self.model.parse_file(self.view.tab1.filePathCtrl.GetValue())
           
         except Exception as exception:
             self.view.ShowException('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
