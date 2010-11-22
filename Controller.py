@@ -25,7 +25,7 @@ class Controller:
         This method is the handler for "FILE PATH CHANGED" messages, which pubsub will call as messages are sent from the model.
         """
         try:
-        self.model.parse_file(message.data)
+            self.model.parse_file(message.data)
           
         except Exception as exception:
             self.view.show_exception('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
