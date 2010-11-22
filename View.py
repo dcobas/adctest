@@ -32,7 +32,8 @@ class Tab1(Tab):
         self.signalPlot = Plot.Signal(self)
         
         # Bind actions to the two buttons
-        self.fileOpenButton.Bind(wx.EVT_BUTTON, self.OpenFileDialog)
+        self.fileOpenButton.Bind(wx.EVT_BUTTON, self.open_file_dialog)
+        self.fileParseButton.Bind(wx.EVT_BUTTON, self.send_file_path_changed_message)
         
         # sizer for the textbox and button
         filePathCtrlsSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -56,10 +57,13 @@ class Tab1(Tab):
         
         self.padding.Add(sizer, 1, wx.EXPAND)  
     
-    def SignalChanged(self, model):
+    def signal_changed(self, model):
         self.signalPlot.update(model.data)
+    
+    def send_file_path_changed_message(self, evt=None):
+        pub.sendMessage("FILE PATH CHANGED", self.filePathCtrl.GetValue())
 
-    def OpenFileDialog(self, evt=None):
+    def open_file_dialog(self, evt=None):
         
         prevPath = self.filePathCtrl.GetValue()
         
@@ -81,6 +85,7 @@ class Tab1(Tab):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.filePathCtrl.SetValue(path)
+            self.send_file_path_changed_message()
         dlg.Destroy()
         
 class Tab2(Tab):
@@ -119,16 +124,11 @@ class Tab2(Tab):
         
         self.padding.Add(sizer, 1, wx.EXPAND)
     
-    def SignalChanged(self, model):
+    def signal_changed(self, model):
         self.INLPlot.update(model.INL())
         self.DNLPlot.update(model.DNL())
         self.HistogramPlot.update(model.histogram(), model.ideal_histogram())
-        
-        
-        
-        
-        
-        
+
 
 class Tab3(Tab):
 
@@ -156,13 +156,13 @@ class View(wx.Frame):
         self.SetSizer(sizer)
         self.Fit()    
 
-    def ShowException(self, title, message):
+    def show_exception(self, title, message):
         dlg = wx.MessageDialog(self, message, title, wx.OK | wx.ICON_ERROR)
         dlg.ShowModal()
         dlg.Destroy()
     
-    def SignalChanged(self, model):
-        self.tab1.SignalChanged(model)
+    def signal_changed(self, model):
+        self.tab1.signal_changed(model)
         # TODO: add the same form tab2 and tab3, and implement the changes
         
     

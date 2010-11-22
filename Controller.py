@@ -15,28 +15,27 @@ class Controller:
         self.model = Model()
         self.view = View()
 
-        self.view.tab1.fileParseButton.Bind(wx.EVT_BUTTON, self.FilePathChanged)
+        # subscribe to all "FILE PATH CHANGED" messages from the View
+        pub.subscribe(self.parse_file, "FILE PATH CHANGED")
         
         # subscribe to all "SIGNAL CHANGED" messages from the Model
-        pub.subscribe(self.SignalChanged, "SIGNAL CHANGED")
+        pub.subscribe(self.signal_changed, "SIGNAL CHANGED")
 
         self.view.Show()
         
-    def FilePathChanged(self, evt):
+    def parse_file(self, message):
         """
         This method is the handler for "FILE PATH CHANGED" messages, which pubsub will call as messages are sent from the model.
         """
         try:
-            self.model.parse_file(self.view.tab1.filePathCtrl.GetValue())
+            self.model.parse_file(message.data)
           
         except Exception as exception:
-            self.view.ShowException('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
-            # ensure that the SIGNAL CHANGED event is raised no matter what. This will 'blank' the view, as the model has no data
-            pub.sendMessage("SIGNAL CHANGED")
+            self.view.show_exception('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
     
-    def SignalChanged(self, message):
+    def signal_changed(self, message):
         """
         This method is the handler for "SIGNAL CHANGED" messages, which pubsub will call as messages are sent from the model.
         """
-        self.view.SignalChanged(self.model)
+        self.view.signal_changed(self.model)
 

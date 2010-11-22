@@ -1,3 +1,5 @@
+from FFTSignal import FFTSignal 
+
 __doc__ = """
     Interface for the adc ADC characterization module
 
@@ -42,21 +44,23 @@ class Signal(object):
         self.data = data
 
     def histogram(self):
-       """Compute histogram of a sampled signal
+        """Compute histogram of a sampled signal
 
-       The number of bins in the histogram is implicitly given by the number
-       of bits of the samples: 2**signal.nbits bins.
+        The number of bins in the histogram is implicitly given by the number
+        of bits of the samples: 2**signal.nbits bins.
 
            returns: an array of 2**signal.nbits numbers (frequencies)
-       """
+        """
+        return [1] * (2 * self.nbits)
 
     def ideal_histogram(self):
-       """Produce an ideal vector of frequencies (histogram) for the
-       nsamples samples of a perfect nbits ADC. Mostly for auxiliary and
-       display purposes
+        """Produce an ideal vector of frequencies (histogram) for the
+        nsamples samples of a perfect nbits ADC. Mostly for auxiliary and
+        display purposes
 
            returns: an array of 2**signal.nbits numbers (frequencies)
-       """
+        """
+        return [2] * (2 * self.nbits)
 
     def DNL(self):
         """Compute differential non-linearity vector for a given time-domain
@@ -66,14 +70,17 @@ class Signal(object):
             - dnl is an array of 2**signal.nbits real values and
             - total is a real value (computed from dnl)
         """
+        return [3] * (2 * self.nbits), 3
+        
 
     def INL(self):
-       """Compute integral non-linearity vector for a given time-domain signal
+        """Compute integral non-linearity vector for a given time-domain signal
 
            returns: a pair (inl, total) where
             - inl is an array of 2**signal.nbits real values and
             - total is a real (computed from inl)
         """
+        return [4] * (2 * self.nbits), 4
 
     def FFT(self, navg, window):
         """Compute the amplitudes (in dB) of the FFT of signal, averaging navg
@@ -84,3 +91,4 @@ class Signal(object):
 
         returns: an FFTSignal object
         """
+        return FFTSignal(self.data, 1, 1)
