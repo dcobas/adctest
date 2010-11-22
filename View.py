@@ -87,6 +87,48 @@ class Tab2(Tab):
 
     def __init__(self, parent):
         Tab.__init__(self, parent)
+        
+        # buttons / controls
+        self.INLLabel = wx.StaticText(self, -1, "INL Max: -")
+        self.DNLLabel = wx.StaticText(self, -1, "DNL Max: -")
+
+        # plots
+        self.INLPlot = Plot.DNL(self)
+        self.DNLPlot = Plot.INL(self)
+        self.HistogramPlot = Plot.Histogram(self)
+        
+        # Put label on top of INL graph
+        INLSizer = wx.BoxSizer(wx.VERTICAL)
+        INLSizer.Add(self.INLLabel, 0, wx.EXPAND)
+        INLSizer.Add(self.INLPlot, 1, wx.EXPAND)
+        
+        # Put label on top of DNL graph
+        DNLSizer = wx.BoxSizer(wx.VERTICAL)
+        DNLSizer.Add(self.DNLLabel, 0, wx.EXPAND)
+        DNLSizer.Add(self.DNLPlot, 1, wx.EXPAND)
+        
+        # Put INL to the left and DNL to the right
+        INLDNLSizer = wx.BoxSizer(wx.HORIZONTAL)
+        INLDNLSizer.Add(INLSizer, 1, wx.EXPAND)
+        INLDNLSizer.Add(DNLSizer, 1, wx.EXPAND)
+        
+        # Put INL/DNL on the top, Histogram to the bottom
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(INLDNLSizer, 1, wx.EXPAND)
+        sizer.Add(self.HistogramPlot, 1, wx.EXPAND)
+        
+        self.padding.Add(sizer, 1, wx.EXPAND)
+    
+    def SignalChanged(self, model):
+        self.INLPlot.update(model.INL())
+        self.DNLPlot.update(model.DNL())
+        self.HistogramPlot.update(model.histogram(), model.ideal_histogram())
+        
+        
+        
+        
+        
+        
 
 class Tab3(Tab):
 
