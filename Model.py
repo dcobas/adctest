@@ -46,6 +46,19 @@ class Model:
             self.cache_fft_signal(max_peaks)
             pub.sendMessage("SIGNAL CHANGED")
     
+    def reprocess_fft(self, window, slices, max_peaks):
+        """ Invoked when the FFT controls on tab 3 have been changed. re-calculates fft
+            Emits the message 'FFT CHANGED' when done calculating
+        """
+        
+        # TODO: figure out how window, slices and max_peax change the way fft is calculated
+        # maybe they define dB and time_domain?
+        dB = None
+        time_domain = None
+        
+        self.fft_signal = self.signal.FFT(dB, time_domain)
+        self.cache_fft_signal(max_peaks)
+        pub.sendMessage("FFT CHANGED")
     
     def cache_signal(self):
         """ Invokes all methods in Signal and caches their result for later use (mainly window resizing)

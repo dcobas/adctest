@@ -157,9 +157,9 @@ class Tab3(Tab):
         self.max_peaks_ctrl.SetRange(1,10)
         
         # Control bindings
-        self.Bind(wx.EVT_SPINCTRL, self.fft_changed, self.slices_ctrl)
-        self.Bind(wx.EVT_SPINCTRL, self.fft_changed, self.max_peaks_ctrl)
-        self.Bind(wx.EVT_COMBOBOX, self.fft_changed, self.window_ctrl)
+        self.Bind(wx.EVT_SPINCTRL, self.send_fft_controls_changed_message, self.slices_ctrl)
+        self.Bind(wx.EVT_SPINCTRL, self.send_fft_controls_changed_message, self.max_peaks_ctrl)
+        self.Bind(wx.EVT_COMBOBOX, self.send_fft_controls_changed_message, self.window_ctrl)
         
         # Plot
         self.fft_plot = Plot.FFT(self)
@@ -187,7 +187,10 @@ class Tab3(Tab):
             (window_label, 0),       (self.window_ctrl, 0, wx.ALIGN_RIGHT),
             (slices_label, 0),       (self.slices_ctrl, 0, wx.ALIGN_RIGHT),
             (max_peaks_label, 0),    (self.max_peaks_ctrl, 0, wx.ALIGN_RIGHT),
-            ((50,30)),               ((50,30)), # separator
+            
+             # separator
+            ((50,30)),               ((50,30)),
+            
             (SFDR_label, 0),         (self.SFDR_label, 0),
             (THD_label, 0),          (self.THD_label, 0),
             (SINAD_label, 0),        (self.SINAD_label, 0),
@@ -206,15 +209,26 @@ class Tab3(Tab):
         sizer.Add(self.fft_plot, 2, wx.EXPAND)
         
         self.padding.Add(sizer, 1, wx.EXPAND)
+    
+    def send_fft_controls_changed_message(self, evt):
+        """ Sends a message to the Controller saying that the fft controls have been changed.
+            Called whenever one of the controls is changed.
+            Evt is ignored.
+        """
+        message = [self.window_ctrl.GetValue(), self.slices_ctrl.GetValue(), self.max_peaks_ctrl.GetValue()]
+        pub.sendMessage("FFT CONTROLS CHANGED", message)
      
-    def fft_changed(self, evt):
-        # FIXME add stuff here
-        pass
-        
-        
-
-
-
+    def fft_changed(self, model):
+        """ Encodes what has to be done when a new signal has been loaded or the fft controls have changed
+            (on this tab, update the plot and labels)
+        """
+        self.fft_plot.update(model.fft, model.harmonic_peaks)
+        self.SFDR_label.SetLabel(str(model.SFDR))
+        self.THD_label.SetLabel(str(model.THD))
+        self.SINAD_label.SetLabel(str(model.SINAD))
+        self.SNR_label.SetLabel(str(model.SNR))
+        self.noise_floor_label.SetLabel(str(model.noise_floor))
+        self.process_gain_label.SetLabel(str(model.process_gain))
         
 class View(wx.Frame):
     """ Contains the visual information - how the different windows, buttons, etc look and work.
@@ -258,7 +272,10 @@ class View(wx.Frame):
         """
         self.tab1.signal_changed(model)
         self.tab2.signal_changed(model)
-        # TODO: add the same form tab2 and tab3, and implement the changes
+        self.fft_changed(model)
+
+    def fft_changed(self, model):
+        self.tab3.fft_changed(model)
         
     
     
