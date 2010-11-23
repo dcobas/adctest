@@ -1,5 +1,5 @@
 import wxversion
-wxversion.ensureMinimal('2.8')
+wxversion.ensureMinimal('2.6')
 import wx
 
 from Controller import Controller
