@@ -16,16 +16,6 @@ __doc__ = """
       * sampling rate
 """
 
-window_types = [
-    'RECTANGULAR', 
-    'HANN', 
-    'HAMMING', 
-    'TUKEY', 
-    'COSINE', 
-    'LANCZOS', 
-    'BARTLETT_HANN', 
-]
-
 class Signal(object):
     """a representation of a time-domain sampled signal
     """

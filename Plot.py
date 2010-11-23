@@ -52,10 +52,22 @@ class Histogram(Signal):
     
     """ Specifies what has to be done if the signal is changed (the data has to be re-plotted)
     """
-    def update(self, dataReal, dataIdeal):
+    def update(self, histogram, ideal_histogram):
         self.axes.clear()
-        self.axes.plot(arange(0,len(dataReal),1) , dataReal, '.') 
-        self.axes.plot(arange(0,len(dataIdeal),1) ,dataIdeal, '.')        
+        self.axes.plot(arange(0,len(histogram),1), histogram, '.') 
+        self.axes.plot(arange(0,len(ideal_histogram),1), ideal_histogram, '.')        
+        self.draw()
+
+class FFT(Signal):
+    """ Represents the FFT plot 
+    """
+    def __init__(self, parent):
+        Signal.__init__(self, parent)
+    
+    def update(self, fft, harmonic_peaks):
+        self.axes.clear()
+        self.axes.plot(arange(0,len(fft),1) , fft, '.') 
+        self.axes.plot(arange(0,len(harmonic_peaks),1) ,harmonic_peaks, '.')        
         self.draw()
     
 

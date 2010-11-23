@@ -5,6 +5,8 @@ import os.path
 
 import Plot # for graphs
 
+from FFTSignal import FFTSignal # so we can use FFTSignal.WINDOW_TYPES
+
 class Tab(wx.Panel):
     """ Superclass of all 'main panels' (accesible via the 3 different tabs) in the application.
         It defines a sizer called 'self.padding' that can be used to have a uniform 15-pixels
@@ -139,6 +141,80 @@ class Tab3(Tab):
     def __init__(self, parent):
         Tab.__init__(self, parent)  
         
+        # Controls
+        window_label = wx.StaticText( self, -1, "Window:")
+        self.window_ctrl = wx.ComboBox( self, 500, FFTSignal.WINDOW_TYPES[1], wx.DefaultPosition, (120,30), 
+            FFTSignal.WINDOW_TYPES,
+            wx.CB_DROPDOWN | wx.CB_READONLY | wx.CB_SORT
+        )
+        
+        slices_label = wx.StaticText(self, -1, "Slices:")
+        self.slices_ctrl = wx.SpinCtrl(self, -1, "1", wx.DefaultPosition, (100,30))
+        self.slices_ctrl.SetRange(1,10)
+        
+        max_peaks_label = wx.StaticText(self, -1, "Max peaks:")
+        self.max_peaks_ctrl = wx.SpinCtrl(self, -1, "5", wx.DefaultPosition, (100,30))
+        self.max_peaks_ctrl.SetRange(1,10)
+        
+        # Control bindings
+        self.Bind(wx.EVT_SPINCTRL, self.fft_changed, self.slices_ctrl)
+        self.Bind(wx.EVT_SPINCTRL, self.fft_changed, self.max_peaks_ctrl)
+        self.Bind(wx.EVT_COMBOBOX, self.fft_changed, self.window_ctrl)
+        
+        # Plot
+        self.fft_plot = Plot.FFT(self)
+        
+        # SFDR, THD, SINAD, SNR, Noise floor, Process Gain 'static' labels (titles)
+        SFDR_label = wx.StaticText(self, -1, "SFDR:")
+        THD_label = wx.StaticText(self, -1, "THD:")
+        SINAD_label = wx.StaticText(self, -1, "SINAD:")
+        SNR_label = wx.StaticText(self, -1, "SNR:")
+        noise_floor_label = wx.StaticText(self, -1, "Noise Floor:")
+        process_gain_label = wx.StaticText(self, -1, "Process Gain:")
+        
+        # SFDR, THD, SINAD, SNR, Noise floor, Process Gain 'dynamic' labels (values)
+        self.SFDR_label = wx.StaticText(self, -1, "0", wx.DefaultPosition, (50,30) )
+        self.THD_label = wx.StaticText(self, -1, "0", wx.DefaultPosition, (50,30))
+        self.SINAD_label = wx.StaticText(self, -1, "0", wx.DefaultPosition, (50,30))
+        self.SNR_label = wx.StaticText(self, -1, "0", wx.DefaultPosition, (50,30))
+        self.noise_floor_label = wx.StaticText(self, -1, "0", wx.DefaultPosition, (50,30))
+        self.process_gain_label = wx.StaticText(self, -1, "0", wx.DefaultPosition, (50,30))
+        
+        # Put control labels to the left, controls to the right
+        grid_sizer = wx.GridSizer(9, 2, 2, 2)  # rows, cols, vgap, hgap
+
+        grid_sizer.AddMany([
+            (window_label, 0),       (self.window_ctrl, 0, wx.ALIGN_RIGHT),
+            (slices_label, 0),       (self.slices_ctrl, 0, wx.ALIGN_RIGHT),
+            (max_peaks_label, 0),    (self.max_peaks_ctrl, 0, wx.ALIGN_RIGHT),
+            ((50,30)),               ((50,30)), # separator
+            (SFDR_label, 0),         (self.SFDR_label, 0),
+            (THD_label, 0),          (self.THD_label, 0),
+            (SINAD_label, 0),        (self.SINAD_label, 0),
+            (SNR_label, 0),          (self.SNR_label, 0),
+            (noise_floor_label, 0),  (self.noise_floor_label, 0),
+            (process_gain_label, 0), (self.process_gain_label, 0)
+        ])
+        
+        # Put the grid inside a vertical sizer so it doesn't scale vertically
+        grid_container_sizer = wx.BoxSizer(wx.VERTICAL)
+        grid_container_sizer.Add(grid_sizer, 0, wx.EXPAND)
+        
+        # Put plot to the left of the grid sizer
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(grid_container_sizer, 1)
+        sizer.Add(self.fft_plot, 2, wx.EXPAND)
+        
+        self.padding.Add(sizer, 1, wx.EXPAND)
+     
+    def fft_changed(self, evt):
+        # FIXME add stuff here
+        pass
+        
+        
+
+
+
         
 class View(wx.Frame):
     """ Contains the visual information - how the different windows, buttons, etc look and work.

@@ -1,6 +1,16 @@
 class FFTSignal(object):
     """a representation of a frequency-domain signal
     """
+    
+    WINDOW_TYPES = [
+        'RECTANGULAR',
+        'HANN',
+        'HAMMING',
+        'TUKEY',
+        'COSINE',
+        'LANCZOS',
+        'BARTLETT_HANN'
+    ]
 
     def __init__(self, fft, dB = None, time_domain = None):
         """initialize an FFTSignal object
