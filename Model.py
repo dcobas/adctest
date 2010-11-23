@@ -12,8 +12,7 @@ class Model:
         It communicates with the Controller by emiting messages.
     """
 
-    FFT_METHODS = ['process_gain', 'harmonic_peaks', 'noise_floor', 'SFDR', 'SINAD', 'THD', 'SNR', 'ENOB']
-    INTEGER_METHODS = ['noise_floor', 'SFDR', 'SINAD', 'THD', 'SNR', 'ENOB']
+    FFT_METHODS = ['process_gain', 'noise_floor', 'SFDR', 'SINAD', 'THD', 'SNR', 'ENOB']
 
     def __init__(self):
         self.signal = None
@@ -51,14 +50,20 @@ class Model:
             Emits the message 'FFT CHANGED' when done calculating
         """
         
-        # TODO: figure out how window, slices and max_peax change the way fft is calculated
-        # maybe they define dB and time_domain?
-        dB = None
-        time_domain = None
-        
-        self.fft_signal = self.signal.FFT(dB, time_domain)
+
+        if self.signal is None:
+            self.fft_signal = None
+        else:
+            # TODO: figure out how window, slices and max_peax change the way fft is calculated
+            # maybe they define dB and time_domain?
+            dB = None
+            time_domain = None
+            
+            self.fft_signal = self.signal.FFT(dB, time_domain)
+          
         self.cache_fft_signal(max_peaks)
         pub.sendMessage("FFT CHANGED")
+        
     
     def cache_signal(self):
         """ Invokes all methods in Signal and caches their result for later use (mainly window resizing)
@@ -66,15 +71,15 @@ class Model:
         """
     
         if self.signal is None:
-          self.data = []
-          self.INL, self.max_INL = [], 0
-          self.DNL, self.max_DNL = [], 0
-          self.histogram, self.ideal_histogram = [], []
+            self.data = []
+            self.INL, self.max_INL = [], 0
+            self.DNL, self.max_DNL = [], 0
+            self.histogram, self.ideal_histogram = [], []
         else:
-          self.data = self.signal.data
-          self.INL, self.max_INL = self.signal.INL()
-          self.DNL, self.max_DNL = self.signal.DNL()
-          self.histogram, self.ideal_histogram = self.signal.histogram(), self.signal.ideal_histogram()
+            self.data = self.signal.data
+            self.INL, self.max_INL = self.signal.INL()
+            self.DNL, self.max_DNL = self.signal.DNL()
+            self.histogram, self.ideal_histogram = self.signal.histogram(), self.signal.ideal_histogram()
     
     def cache_fft_signal(self, max_peaks=0):
         """ Invokes all methods in FFTSignal and caches their result for later use (mainly window resizing)
@@ -85,7 +90,7 @@ class Model:
             self.fft = []
             self.harmonic_peaks = []
             for name in Model.FFT_METHODS: 
-                setattr(self, name, 0 if name in Model.INTEGER_METHODS else [])
+                setattr(self, name, 0)
         else:
             self.fft = self.fft_signal.fft
             self.harmonic_peaks = self.fft_signal.harmonic_peaks(max_peaks)

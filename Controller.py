@@ -30,11 +30,11 @@ class Controller:
         Handles "FILE PATH CHANGED" messages, send by the View. It tells the model to parse a new file.
         message.data should contain the path of the new file
         """
-        #try:
-        self.model.parse_file(message.data)
+        try:
+            self.model.parse_file(message.data)
           
-        #except Exception as exception:
-        #    self.view.show_exception('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
+        except Exception as exception:
+            self.view.show_exception('Error reading file', 'The following error happened while reading the file:\n%s' % str(exception))
         
     def reprocess_fft(self, message):
         """
