@@ -1,4 +1,5 @@
 from FFTSignal import FFTSignal 
+from numpy import *
 
 __doc__ = """
     Interface for the adc ADC characterization module
@@ -20,6 +21,8 @@ class Signal(object):
     """a representation of a time-domain sampled signal
     """
 
+    MAXRES = 512        # maximum tolerable resolution for a histogram
+
     def __init__(self, nbits, rate, data):
         """initialize a signal object
 
@@ -33,6 +36,10 @@ class Signal(object):
         self.rate = rate
         self.data = data
 
+    def histogram_resolution(self):
+        bins = 2**self.nbits
+        return 512 if bins > self.MAXRES else bins
+
     def histogram(self):
         """Compute histogram of a sampled signal
 
@@ -41,7 +48,9 @@ class Signal(object):
 
            returns: an array of 2**signal.nbits numbers (frequencies)
         """
-        return [1] * (2 * self.nbits)
+        bins = self.histogram_resolution()
+        hist, bins = histogram(array(self.data), bins)
+        return hist
 
     def ideal_histogram(self):
         """Produce an ideal vector of frequencies (histogram) for the
@@ -50,7 +59,9 @@ class Signal(object):
 
            returns: an array of 2**signal.nbits numbers (frequencies)
         """
-        return [2] * (2 * self.nbits)
+        bins = self.histogram_resolution()
+        x = linspace(-1.0, 1.0, num=bins)
+        return (1/pi) / sqrt(1-x**2)
 
     def DNL(self):
         """Compute differential non-linearity vector for a given time-domain
