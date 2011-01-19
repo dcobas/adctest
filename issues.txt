@@ -1,0 +1,7 @@
+* parser error display freezes compiz. Shorten it to 25 lines or less in
+  the popup
+
+* automatically parse?
+
+* in general, test all out-of-bounds conditions and deal with errors
+  properly
