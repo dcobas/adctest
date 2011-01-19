@@ -1,5 +1,5 @@
 CC=gcc
-OBJS=usb_rdma.o adc_stuff.o serial_linux.o adc_test_modified.o
+OBJS=usb_rdma.o adc_stuff.o serial_linux.o adc_test_modified.o adc_test.o
 OUTPUT=adc_test
 OUTPUT_SO=libadc.so
 CFLAGS_SDL=$(shell sdl-config --cflags) $(shell pkg-config --cflags fftw3)  -lSDL_ttf
@@ -13,4 +13,4 @@ all:	$(OBJS) adc_test.o
 		${CC} -shared -o $(OUTPUT_SO) $(OBJS)
 
 clean:
-		rm -f $(OBJS) $(OUTPUT)
+		rm -f $(OBJS) $(OUTPUT) $(OUTPUT_SO) 
