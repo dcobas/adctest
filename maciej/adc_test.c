@@ -39,7 +39,7 @@ int y_dB_scale = 1;
 double noise_mean=0, noise_power=0;
 
 
-e=0;
+int e=0;
 
 	double samples[2048] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -361,7 +361,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 				}
 
 				fftw_plan p;			
-				p = fftw_plan_dft_r2c_1d(N, samples_in, out, FFTW_ESTIMATE);
+				p = fftw_plan_dft_r2c_1d(N, samples_in, (fftw_complex *)out, FFTW_ESTIMATE);
 				fftw_execute(p);
 				for (i=0;i<1024;i++)
 				{                                     
@@ -514,7 +514,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 
 
 
-int my_sighandler(int sig)
+void my_sighandler(int sig)
 {
 fprintf(stderr,"jeb....\n");
 	SDL_Quit();
@@ -752,7 +752,7 @@ main()
 						temp_char[1] |= (N1_temp & 0x03) << 6;
  						
 						i2c_write(BASE_I2C_CLKGEN, 0xAA, 0x07, temp_char, 2);						
-						fprintf(stderr, "\nfrequency: %d Hz, %d\n\n", base_freq, N1_temp);
+						fprintf(stderr, "\nfrequency: %ld Hz, %d\n\n", base_freq, N1_temp);
 					}
 					else if (event.key.keysym.scancode == 65) // pause - spacja
 					{
