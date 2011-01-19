@@ -76,7 +76,7 @@ e=0;
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-void itoa(int number, char *txt, int digits)
+void my_itoa(int number, char *txt, int digits)
 {
 	int temp = 0;
 	int temp2 = 1000000000;	
@@ -100,7 +100,7 @@ void itoa(int number, char *txt, int digits)
 	txt[temp]='\0';
 }
 
-void putpixel(SDL_Surface *screen, int x, int y, Uint8 r, Uint8 g, Uint8 b)
+void my_putpixel(SDL_Surface *screen, int x, int y, Uint8 r, Uint8 g, Uint8 b)
 {
     Uint32 *pixmem32;
     Uint32 colour; 
@@ -115,12 +115,12 @@ void putpixel(SDL_Surface *screen, int x, int y, Uint8 r, Uint8 g, Uint8 b)
     *pixmem32 = colour;
 }
 
-void line(SDL_Surface *screen, int x0, int y0, int x1, int y1, Uint8 r, Uint8 g, Uint8 b)
+void my_line(SDL_Surface *screen, int x0, int y0, int x1, int y1, Uint8 r, Uint8 g, Uint8 b)
 {
     int dx = x1 - x0;
     int dy = y1 - y0;
 
-    putpixel(screen, x0, y0, r, g, b);
+    my_putpixel(screen, x0, y0, r, g, b);
 
     if (abs(dx) > abs(dy)) 
 	{          // slope < 1
@@ -130,7 +130,7 @@ void line(SDL_Surface *screen, int x0, int y0, int x1, int y1, Uint8 r, Uint8 g,
         while (x0 != x1) 
 		{
             x0 += dx;
-		    putpixel(screen, x0, round(m*x0 + bb), r, g, b);
+		    my_putpixel(screen, x0, round(m*x0 + bb), r, g, b);
 	    }
     } 
 	else if (dy != 0) 
@@ -141,7 +141,7 @@ void line(SDL_Surface *screen, int x0, int y0, int x1, int y1, Uint8 r, Uint8 g,
         while (y0 != y1) 
 		{
  	       y0 += dy;
-	       putpixel(screen, round(m*y0 + bb), y0, r, g, b);
+	       my_putpixel(screen, round(m*y0 + bb), y0, r, g, b);
         }
     }
 }
@@ -273,7 +273,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 				for(y = 0; y < screen->h; y++ ) 
 				{
 			   		for(x=0;x<screen->w;x++)
-						putpixel(screen,x,y,0x00, 0x00, 0x00);		    	
+						my_putpixel(screen,x,y,0x00, 0x00, 0x00);		    	
 				}
 			}
 
@@ -281,13 +281,13 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 			for (y=64;y<512;y+=64)
 			{
 				for(i=0;i<1024;i+=2)
-					putpixel(screen, i,y,0x50,0x50,0x50);
+					my_putpixel(screen, i,y,0x50,0x50,0x50);
 			}
 
 			for (x=64;x<1024;x+=64)
 			{
 				for(i=0;i<512;i+=2)
-					putpixel(screen, x,i,0x50,0x50,0x50);
+					my_putpixel(screen, x,i,0x50,0x50,0x50);
 			}
 
 
@@ -301,24 +301,24 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 
 				y = (samples[x]*scale)+(screen->h/2);
 			 	y_2 = (samples[x+1]*scale)+(screen->h/2);
-				line(screen, x, y, x+1, y_2, 0xFF, 0xFF, 0x00);
+				my_line(screen, x, y, x+1, y_2, 0xFF, 0xFF, 0x00);
 			}
 		
 			for(i=0;i<512;i++)
-				putpixel(screen, rms_stop,i,0xFF,0,0);
+				my_putpixel(screen, rms_stop,i,0xFF,0,0);
 
 			y = (int)(zero_level*scale)+screen->h/2;
 			for(i=0;i<1024;i++)
 			{
-				putpixel(screen, i,y,0,0,0xFF);
+				my_putpixel(screen, i,y,0,0,0xFF);
 			}
 		
 			y = (int)((rms+zero_level)*scale)+screen->h/2;
 			x = (int)((zero_level-rms)*scale)+screen->h/2;
 			for (i=0;i<1024;i++)
 			{
-				putpixel(screen,i,y,0xFF,0,0);
-				putpixel(screen,i,x,0xFF,0,0);
+				my_putpixel(screen,i,y,0xFF,0,0);
+				my_putpixel(screen,i,x,0xFF,0,0);
 			}
 		}	
 	
@@ -329,7 +329,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 				for(y = 0; y < screen->h; y++ ) 
 				{
 			   		for(x=0;x<screen->w;x++)
-						putpixel(screen,x,y,0x00, 0x00, 0x00);		    	
+						my_putpixel(screen,x,y,0x00, 0x00, 0x00);		    	
 				}
 			}
 		
@@ -347,7 +347,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 				yy = -64 * y_dB_scale * log10(rms);
 				yy = yy*PI*freq/100000000/sin(PI*freq/100000000);
 				//drawing line
-				line(screen, xx, yy, x_o, y_o, 0xFF, 0xFF, 0x00);	
+				my_line(screen, xx, yy, x_o, y_o, 0xFF, 0xFF, 0x00);	
 			}
 		                    
 
@@ -369,7 +369,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 					int j=i+1;
 					y_2 = -64 * y_dB_scale * log10(sqrt(out[j][0]*out[j][0]+ out[j][1]*out[j][1])/N*2);
 									                
-					line(screen, i, y, j, y_2, 0xFF, 0xFF, 0x00);					
+					my_line(screen, i, y, j, y_2, 0xFF, 0xFF, 0x00);					
 				}
 		
 				fftw_destroy_plan(p);
@@ -383,7 +383,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 			for (y=32;y<512;y+=32)
 			{
 				for(i=0;i<1024;i+=2)
-					putpixel(screen, i,y,0x50,0x50,0x50);
+					my_putpixel(screen, i,y,0x50,0x50,0x50);
 			}
 
 			int dB = 0;
@@ -394,14 +394,14 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 				if (!(y%(y_dB_scale*32)))
 				{
 					for(i=0;i<1024;i++)
-						putpixel(screen, i,y,0xA0,0xA0,0xA0);
+						my_putpixel(screen, i,y,0xA0,0xA0,0xA0);
 				}
 				
 				dB -= 1000/y_dB_scale;
-				itoa(dB/100, txt, -1);
+				my_itoa(dB/100, txt, -1);
 				if(y_dB_scale>2)
 				{
-					itoa(-1*(dB-(dB/100*100)), txt2, 2);
+					my_itoa(-1*(dB-(dB/100*100)), txt2, 2);
 					strcat(txt, ".");
 					strcat(txt, txt2);
 				}							
@@ -417,7 +417,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 			for (x=205;x<1024;x+=205)
 			{
 				for(i=0;i<512;i+=2)
-					putpixel(screen, x,i,0x50,0x50,0x50);
+					my_putpixel(screen, x,i,0x50,0x50,0x50);
 			}          
 
 
@@ -425,9 +425,9 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 			for (x=205;x<1024;x+=205)
 			{
 								
-				itoa(base_freq*(temp)/10/1000000, txt, -1);
+				my_itoa(base_freq*(temp)/10/1000000, txt, -1);
 				strcat(txt,".");
-				itoa(((base_freq*temp/10/1000)%1000), txt2, 3);
+				my_itoa(((base_freq*temp/10/1000)%1000), txt2, 3);
 				strcat(txt,txt2);							
 				strcat(txt, " MHz");
 				temp++;	
@@ -491,10 +491,10 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 				}
 
 				for (;y<=(y_2 - (y_2-y)/2);y++)
-					putpixel(screen,i,y,0xFF, 0xFF,0);	
+					my_putpixel(screen,i,y,0xFF, 0xFF,0);	
 
 				temp = samples[(int)round(smpl)];
-	putpixel(screen,i,y,0xFF, 0xFF,0);			
+	my_putpixel(screen,i,y,0xFF, 0xFF,0);			
 	smpl += per;
 				while(smpl>=rms_stop)
 					smpl-= rms_stop;
@@ -514,7 +514,7 @@ void DrawScreen(SDL_Surface* screen, double samples_in[], float scale, int x_sca
 
 
 
-int sighandler(int sig)
+int my_sighandler(int sig)
 {
 fprintf(stderr,"jeb....\n");
 	SDL_Quit();
@@ -544,7 +544,7 @@ main()
     int keypress = 0;
     int h=0; 
 
-	signal(SIGINT, sighandler);
+	signal(SIGINT, my_sighandler);
                   
     adc_init();
 	i2c_init(BASE_I2C_CLKGEN);	
