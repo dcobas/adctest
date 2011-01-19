@@ -49,6 +49,10 @@ class Tab1(Tab):
         self.padding.Add(path_label, 0, wx.EXPAND)
         self.padding.Add(ctrls_sizer, 0, wx.EXPAND)
         self.padding.Add(self.signal_plot, 1, wx.EXPAND)
+
+        # jdgc: pa abreviar
+        self.path_ctrl.SetValue('/home/dcobas/projects/adctest/samples/complex.txt')
+        self.send_path_changed_message()
     
     def signal_changed(self, model):
         """ Encodes what has to be done when a new signal has been loaded (the plot has to be updated)
