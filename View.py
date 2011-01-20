@@ -51,7 +51,7 @@ class Tab1(Tab):
         self.padding.Add(self.signal_plot, 1, wx.EXPAND)
 
         # jdgc: pa abreviar
-        self.path_ctrl.SetValue('/home/dcobas/projects/adctest/samples/complex.txt')
+        self.path_ctrl.SetValue('/home/dcobas/projects/adctest/samples/data.txt')
         self.send_path_changed_message()
     
     def signal_changed(self, model):
