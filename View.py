@@ -131,8 +131,8 @@ class Tab2(Tab):
         """ Encodes what has to be done when a new signal has been loaded (update all the plots and labels)
         """
 
-        self.max_INL_label.SetLabel("Max INL: %d%%" % round(model.max_INL * 100, 0))
-        self.max_DNL_label.SetLabel("Max DNL: %d%%" % round(model.max_DNL * 100, 0))
+        self.max_INL_label.SetLabel("Max INL: %d%%" % int(round(model.max_INL * 100, 0)))
+        self.max_DNL_label.SetLabel("Max DNL: %d%%" % int(round(model.max_DNL * 100, 0)))
         self.INL_plot.update(model.INL)
         self.DNL_plot.update(model.DNL)
         self.histogram_plot.update(model.histogram, model.ideal_histogram)
