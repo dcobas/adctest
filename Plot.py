@@ -28,7 +28,7 @@ class Signal(FigureCanvas):
     """
     def update(self, data): 
         self.axes.clear()
-        self.axes.plot(arange(0,len(data),1) ,data, '.')
+        self.axes.plot(arange(0,len(data),1) ,data, '-')
         self.draw()
 
 
