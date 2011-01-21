@@ -1,16 +1,19 @@
+from numpy import *
+
 class FFTSignal(object):
     """a representation of a frequency-domain signal
     """
-    
-    WINDOW_TYPES = [
-        'RECTANGULAR',
-        'HANN',
-        'HAMMING',
-        'TUKEY',
-        'COSINE',
-        'LANCZOS',
-        'BARTLETT_HANN'
-    ]
+
+    window_function = {
+        'No window' : ones,
+        'BARTLETT' : bartlett,
+        'BLACKMAN' : blackman,
+        'HAMMING' : hamming,
+        'HANNING' : hanning,
+        'KAISER' : kaiser,
+    }
+
+    WINDOW_TYPES = window_function.keys()
 
     def __init__(self, fft, dB = None, time_domain = None):
         """initialize an FFTSignal object

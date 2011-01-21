@@ -118,7 +118,7 @@ class Signal(object):
         inl = cumsum(dnl)
         return inl, max(abs(inl))
 
-    def FFT(self, navg, window):
+    def FFT(self, navg=1, window='No window'):
         """Compute the amplitudes (in dB) of the FFT of signal, averaging navg
         slices of it and applying window to it
 
@@ -127,7 +127,10 @@ class Signal(object):
 
         returns: an FFTSignal object
         """
-        return FFTSignal(self.data, 1, 1)
+        print 'using window ', window
+        win = FFTSignal.window_function[window](self.nsamples)
+        dft = 10*log10(abs(fft.rfft(self.data * win)))
+        return FFTSignal(dft, dB=True, time_domain=self.data)
 
 def makesine(samples, periods, bits, amplitude=1, noise=0):
 
