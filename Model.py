@@ -38,7 +38,7 @@ class Model:
             data = map(string.atoi, dataString)
         
             self.signal = Signal(nbits, rate, data)
-            self.fft_signal = self.signal.FFT(dB, time_domain)
+            self.fft_signal = self.signal.FFT()
         
         finally:
             self.cache_signal()
@@ -49,17 +49,12 @@ class Model:
         """ Invoked when the FFT controls on tab 3 have been changed. re-calculates fft
             Emits the message 'FFT CHANGED' when done calculating
         """
-        
 
         if self.signal is None:
             self.fft_signal = None
         else:
-            # TODO: figure out how window, slices and max_peax change the way fft is calculated
-            # maybe they define dB and time_domain?
-            dB = None
-            time_domain = None
-            
-            self.fft_signal = self.signal.FFT(dB, time_domain)
+            print 'window = ', window
+            self.fft_signal = self.signal.FFT(slices, window)
           
         self.cache_fft_signal(max_peaks)
         pub.sendMessage("FFT CHANGED")
