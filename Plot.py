@@ -66,8 +66,9 @@ class FFT(Signal):
     
     def update(self, fft, harmonic_peaks):
         self.axes.clear()
-        self.axes.plot(arange(0,len(fft),1) , fft, '.') 
-        self.axes.plot(arange(0,len(harmonic_peaks),1) ,harmonic_peaks, '.')        
+        # self.axes.plot(arange(0,len(fft),1) , fft, '|') 
+        self.axes.vlines(arange(0,len(fft),1), 0, fft) 
+        self.axes.plot(arange(0,len(harmonic_peaks),1) , harmonic_peaks, '.')        
         self.draw()
     
 
