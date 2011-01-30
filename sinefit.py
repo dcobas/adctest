@@ -24,7 +24,7 @@ def sinefit3(samples, sample_t, w0):
     x0 = (D0T * D0).I * D0T * matrix(samples).T
     return array(x0).reshape((3,))
 
-def sinefit4(samples, sample_t, w0 tol=1e-4):
+def sinefit4(samples, sample_t, w0, tol=1e-4):
     """fit a sampled wave to a sine of unknown frequency
 
     This routine implements the algorithm of IEEE 1241, sect. 4.1.4.3.,
