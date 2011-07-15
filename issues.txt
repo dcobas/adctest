@@ -1,4 +1,4 @@
-* parser error display freezes compiz. Shorten it to 25 lines or less in
+	* parser error display freezes compiz. Shorten it to 25 lines or less in
   the popup
 
 * automatically parse? An Open button and the parse button is not needed
