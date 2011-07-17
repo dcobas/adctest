@@ -1,0 +1,97 @@
+1 : import syn
+2 : syn.synth(2.9, 100, 0.0, 1000000, 0, 0.02)
+3 : s = +
+4 : s = _
+5 : s
+6 : plot s
+7 : from matplotlib import pyplot
+8 : pyplot.plot(s)
+9 : pyplot.show()
+10: _ip.magic("save ")
+11: help(save)
+12: _ip.magic("save ")
+13: save(s, 'pure_sin.txt')
+14: save(s, 'pure_sin.txt')
+15: from numpy import *
+16: save(s, 'pure_sin.txt')
+17: save('pure_sin.txt', s)
+18: _ip.magic("edit pure_sin.txt.npy")
+19: help(save)
+20: out = file('pure_sin.txt', 'w')
+21:
+for i in s:
+    print >>out, i
+    
+
+22: out.close()
+23: _ip.system("view pure*")
+24: _ip.system("rm pure_sin.txt.npy")
+25:
+def w(s, f):
+    out = file(f, 'w')
+    for i in s:
+        print >>out, i
+    out.close()
+    
+
+26: 
+27: 
+28: 
+29: s
+30: t
+31: syn.synth(2.9, 100, 0.0, 1000000, 0, 0.02)
+32: random.randn(len(s))
+33: 
+34: 
+35: r = 2.9 * 0.001 * random.randn(len(s))
+36: s+r
+37: sn = s+r
+38: w(s, 'gaussian_1000th.txt')
+39: plot s
+40: w(sn, 'gaussian_1000th.txt')
+41: plot s
+42: plot = pyplot.plot
+43: plot(s)
+44: sn = s+r
+45: r = 2.9 * 0.01 * random.randn(len(s))
+46: sn = s+r
+47: w(sn, 'gaussian_100th.txt')
+48: plot(sn)
+49: r = 2.9 * 0.001 * random.randn(len(s))
+50: sn = s+r
+51: w(sn, 'gaussian_100th.txt')
+52: plot(sn)
+53: s = syn.synth(2.9, 100, 0.0, 1000000, 0, 0.025)
+54: sincoh = s
+55: w(sincoh, 'incoherent.txt')
+56: sincohn = s + 0.001 * 2.9 * random.randn(len(s))
+57: w(sincohn, 'incoherent_1000gaussian.txt')
+58: plot(sincohn)
+59: s = syn.synth(2.9, 100, 0.0, 1000000, 0, 0.025)
+60: s = s + 0.01 * syn.synth(2.9, 300, 0.0, 1000000, 0, 0.025)
+61: s = s + 0.02 * syn.synth(2.9, 500, 0.0, 1000000, 0, 0.025)
+62: plot(s)
+63: plot(s)
+64: plot(s)
+65: 1 / sqrt(5)
+66: w(s, 'thd_44_7_times.txt')
+67: s = syn.synth(2.9, 100, 0.0, 1000000, 0, 0.025)
+68: s = s + 0.1 syn.synth(2.9, 500, 0.0, 1000000, 0, 0.025)
+69: s = s + 0.1 * syn.synth(2.9, 500, 0.0, 1000000, 0, 0.025)
+70: s = s + 0.08 * syn.synth(2.9, 800, 0.0, 1000000, 0, 0.025)
+71: s = s + 0.005 * random.randn(len(s))
+72: w(s,'thd_0.1_0.08_n_0.005.txt)
+73: w(s,'thd_0.1_0.08_n_0.005.txt')
+74: help 
+75: help()
+76: #?
+77: #?save
+78: #?history
+79: histogram 
+80: _ip.magic("history ")
+81: _ip.magic("history -h")
+82: #?history -
+83: _ip.magic("history -f")
+84: #?history
+85: _ip.magic("history -f log 1")
+86: _ip.system(" view log")

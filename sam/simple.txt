@@ -1,0 +1,9 @@
+[SIGNAL]
+nbits = 16
+rate = 123
+data = 1
+  2
+  3
+  4
+  5
+
