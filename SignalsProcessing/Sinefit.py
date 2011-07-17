@@ -34,10 +34,10 @@ def sinefit3(samples, sample_t, w0):
 
 def sinefit4(data, Ts, w0):
     # Target function
-    fitfunc = lambda p, x: p[0]*cos(p[3]*x) +p[1]*sin(p[3]*x) +p[2]
+    # fitfunc = lambda p, x: p[0]*cos(p[3]*x) +p[1]*sin(p[3]*x) +p[2]
 
     # Distance to the target function
-    errfunc = lambda p, x, y: fitfunc(p, x) - y
+    errfunc = lambda p, x, y: p[0]*cos(p[3]*x) +p[1]*sin(p[3]*x) +p[2] - y
 
     # Initial guess for the parameters
     A, B, C = sinefit3(data, Ts, w0)

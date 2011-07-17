@@ -11,12 +11,17 @@ from numpy import *
 from matplotlib import pyplot
 
 # For frequency detection and unit-testin
-import Sinefit
+import sinefit
 
 # We need all the window functions
 import WindowFunction
 
 def dB(x): return 20*log10(x)
+
+def norm(v):
+    m = max(abs(v))
+    w = v/m
+    return m * sqrt(sum(w*w))
 
 class WindowedSignal:
     """Container object that will hold information about a DFT of a signal
@@ -123,16 +128,16 @@ class Signal(object):
         print "Guessing w0"
         # sinusoid frequency detection
         
-        w0, w0index = Sinefit.sineguess(output.ldft, self.rate, self.nsamples)
-        freqSample = 2*pi*self.rate
+        w0index = argmax(output.dft)
+        freqSample = 2 * pi * self.rate
+        w0 = freqSample * float(w0index)/self.nsamples
         ratio = w0 / w0index
         print "Samples/period:",self.nsamples / w0index
-        under = self.data[::10]
-        # A, B, C, output.w0 = Sinefit.sinefit4(self.data[:500], freqSample, w0)
-        A, B, C, output.w0 = Sinefit.sinefit4(under, freqSample, w0)
-        output.w0 /= 10
-        amplitude = sqrt(A**2 + B**2)
-        phase = arctan(A/B)
+        print freqSample, w0
+        output.w0, A, B, C  = sinefit.sinefit4(self.data, 1.0/self.rate, w0)
+        print A, B, C, output.w0
+        amplitude = hypot(A, B)
+        phase = arctan2(B, A)
         # let's go through harmonic peaks. we will produce a generator
         # this way
         def adjust(data, fs):
@@ -161,8 +166,9 @@ class Signal(object):
         thvalues = vstack(map(lambda x: x[2], tenHarmonics))
 
         tenHarmonicsValues = array(map(lambda x: x[2], tenHarmonics))
-        rssHarmonics = sqrt(sum(tenHarmonicsValues**2))
+        rssHarmonics = norm(tenHarmonicsValues)
         output.THD = dB(output.dft[w0index]/rssHarmonics)
+        print rssHarmonics, output.dft[w0index-3:w0index+3]
 
         # we need the avg of HDs
         avgHarmonics = mean(tenHarmonicsValues)
@@ -172,20 +178,26 @@ class Signal(object):
         filteredNoise = where(output.dft < avgHarmonics, output.dft, 0)
         output.noiseFloor = dB(mean(filteredNoise))
 
-        output.signalPower = sum(abs(output.dft)**2)/self.nsamples
+        output.signalPower = norm(output.dft)
+        output.signalPower *= output.signalPower / self.nsamples
         #sum(where(output.dft < output.noiseFloor, output.dft, 0)**2)/(self.nsamples**2 )
 
         # thSin = C + Sinefit.makesine(self.nsamples, w0index, self.nbits, 1  )
-        time = arange(0, self.nsamples, dtype=float)/self.nsamples # linspace(0, 1, self.nsamples, endpoint=False )
+        time = arange(0, self.nsamples, dtype=float)/self.rate
         print A, B, C, phase, amplitude
-        thSin = C + amplitude * sin(w0index*2*pi*time + phase)
+        # thSin = C + amplitude * sin(w0index*2*pi*time + phase)
+        thSin = C + A * cos(w0*time) + B * sin(w0*time)
         tmp = file("/tmp/something", 'w')
         tmp.writelines("%f\n" % i for i in thSin)
         tmp.close()
-        
-        noise = self.data - thSin
 
-        output.noisePower = sum(abs(fft.rfft(noise))**2)/self.nsamples
+        noise = self.data - thSin
+        print 'data = ', self.data
+        print 'thSin = ', thSin
+        print 'noise = ', noise, 'max noise = ', max(abs(noise))
+
+        output.noisePower = norm(noise)
+        output.noisePower *= output.noisePower
 
         # now we can evaluate SNR = max component - noise floor - process gain
         # output.SNR = output.dft[w0index] -output.noiseFloor -self.processGain
@@ -195,7 +207,7 @@ class Signal(object):
         clean = array(output.dft)
         clean[0] = 0
         clean[w0index] = 0
-        output.SINAD = dB(output.dft[w0index]/sqrt(sum(clean**2)))
+        output.SINAD = dB(output.dft[w0index]/norm(clean))
 
         # ENOB
         fsr = 2**(self.nbits -1)
@@ -210,16 +222,16 @@ class Signal(object):
         
         output.SFDR = 10*log10(output.dft[w0index] - secondPeak)[0] #10*log10
         
-        print "Sampling frequency       = %.6f rad/s" % freqSample
-        print "Input frequency detected = %.6f rad/s" % output.w0
+        print "Sampling frequency       = %.2f Hz" % self.rate
+        print "Input frequency detected = %.2f Hz" % (output.w0/(2*pi))
         print "THD                      = %g dB" % output.THD
         print "Noise floor              = %.6f dB" % output.noiseFloor
-        print "Signal power             = %.f W" % output.signalPower
-        print "Noise power              = %.f W" % output.noisePower
-        print "SNR                      = %.6f dB" % output.SNR
-        print "SINAD                    = %.6f dB" % output.SINAD
+        print "Signal power             = %.f " % output.signalPower
+        print "Noise power              = %.f " % output.noisePower
+        print "SNR                      = %.2f dB" % output.SNR
+        print "SINAD                    = %.2f dB" % output.SINAD
         print "ENOB                     = %.f b" % output.ENOB
-        print "SFDR                     = %.6f dBc" % output.SFDR
+        print "SFDR                     = %.2f dBc" % output.SFDR
         
         return output
     
