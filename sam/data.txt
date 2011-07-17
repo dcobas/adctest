@@ -1,7 +1,4 @@
-[SIGNAL]
-nbits = 12
-rate = 1110
-data = 0
+ 0
     501
     995
     1474

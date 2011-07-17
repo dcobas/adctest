@@ -167,7 +167,7 @@ class Signal(object):
 
         tenHarmonicsValues = array(map(lambda x: x[2], tenHarmonics))
         rssHarmonics = norm(tenHarmonicsValues)
-        output.THD = dB(output.dft[w0index]/rssHarmonics)
+        output.THD = -dB(output.dft[w0index]/rssHarmonics)
         print rssHarmonics, output.dft[w0index-3:w0index+3]
 
         # we need the avg of HDs
