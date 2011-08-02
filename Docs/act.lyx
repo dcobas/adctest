@@ -1,0 +1,386 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass scrartcl
+\use_default_options true
+\begin_modules
+theorems-ams
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement h
+\paperfontsize default
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip smallskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+ACT
+\begin_inset Newline newline
+\end_inset
+
+ADC Characterization Toolkit
+\end_layout
+
+\begin_layout Author
+Federico Asara
+\end_layout
+
+\begin_layout Abstract
+In this article I will provide a brief introduction to ADCs and their performanc
+e parameters, along with the procedures to calculate them.
+ 
+\end_layout
+
+\begin_layout Abstract
+Then I will present you ACT, the ADC Characterization Toolkit, a Python-powered
+ application that interfaces with ADCs via the Python ADC INterface API,
+ PAIN.
+ ACT presents three characterization modalities, depending on the input
+ given to the ADC: single-tone input wave, two-tone input wave, and a frequency
+ sweep in order to evaluate the ADC transfer function.
+\end_layout
+
+\begin_layout Section
+Brief introduction to ADCs
+\end_layout
+
+\begin_layout Standard
+Last summer student's work should be enough.
+ 
+\end_layout
+
+\begin_layout Section
+Formulae and alghorithms
+\end_layout
+
+\begin_layout Subsection
+Histograms
+\end_layout
+
+\begin_layout Standard
+In order to compute DNL and INL in a fast way for a given signal we generate
+ two histograms that count the frequency of all the possible value the ADC
+ can output.
+ The 
+\series bold
+real histogram
+\series default
+ uses the data read from the signal, the 
+\series bold
+ideal histogram
+\series default
+ uses simulated data for the same signal supposing we have a perfect ADC.
+ The signal used in this case is a sinusoid.
+\end_layout
+
+\begin_layout Subsection
+Non linearities
+\end_layout
+
+\begin_layout Subsubsection
+DNL
+\end_layout
+
+\begin_layout Subsubsection
+INL
+\end_layout
+
+\begin_layout Subsubsection
+Two-tone intermodulation distortion
+\end_layout
+
+\begin_layout Subsection
+Signal windowing (why?)
+\end_layout
+
+\begin_layout Subsection
+Sinusoidal wave frequency detection
+\end_layout
+
+\begin_layout Standard
+In order to compute the SNR of a single tone signal, we need to know the
+ wave's parameters.
+ IEEE offers two different ways to solve this problem, wheter we know or
+ not the wave's frequency.
+\end_layout
+
+\begin_layout Standard
+A wave is represented this way with five parameters:
+\begin_inset Formula 
+\[
+A\cos\left(\omega_{0}t+\theta\right)+B\sin\left(\omega_{0}t+\theta\right)+C
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The amplitude and the phase of the frequency can then be evaluted this way:
+\begin_inset Formula 
+\begin{eqnarray*}
+V & = & \sqrt{A^{2}+B^{2}}\\
+\theta & = & \arctan\frac{B}{A}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+sinefit3
+\end_layout
+
+\begin_layout Standard
+This alghorithm evaluates A, B, C starting from 
+\begin_inset Formula $\omega$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+sinefit4
+\end_layout
+
+\begin_layout Standard
+This alghorithm evaluates A, B, C and 
+\begin_inset Formula $\omega_{0}$
+\end_inset
+
+ starting for an initial approximation of the angular frequency.
+ A good approximation is given by this formula:
+\begin_inset Formula 
+\[
+\omega_{i}=2\pi\frac{f_{s}}{M}arg\max_{j}X_{j}
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $X_{j}$
+\end_inset
+
+ is the DFT of the signal, 
+\begin_inset Formula $f_{s}$
+\end_inset
+
+ the sampling frequency and 
+\begin_inset Formula $M$
+\end_inset
+
+ the number of samples of the signal.
+\end_layout
+
+\begin_layout Subsection
+Performance parmeters
+\end_layout
+
+\begin_layout Standard
+All these parameters are calculated for a digitized sinusoidal wave, eventually
+ multiplied with a window signal.
+\end_layout
+
+\begin_layout Subsubsection
+SNR: Signal to Noise Ratio
+\end_layout
+
+\begin_layout Standard
+The SNR is a rather important parameter, and its general formula is the
+ following:
+\begin_inset Formula 
+\[
+SNR=\frac{P_{s}}{P_{n}}
+\]
+
+\end_inset
+
+with 
+\begin_inset Formula $P_{s}$
+\end_inset
+
+ being the signal-only power and 
+\begin_inset Formula $P_{n}$
+\end_inset
+
+ the noise-only power.
+ 
+\end_layout
+
+\begin_layout Standard
+To compute with great precision this value, we compare our wave with a synthetic
+ one.
+ Using the data obtained from sinefit4 we can generate a signal that represents
+ with greater precision (as a perfect ADC) the sinusoid.
+ We then compute the power of the synthetic wave and the power of the difference
+ between the original and the synthetized waves.
+ We can use these powers to easily compute the SNR.
+\end_layout
+
+\begin_layout Subsubsection
+SINAD: SIgnal to Noise And Distorsion ratio
+\end_layout
+
+\begin_layout Subsubsection
+THD: Total Harmonic Distorsion
+\end_layout
+
+\begin_layout Subsubsection
+ENOB: Effective Number Of Bits
+\end_layout
+
+\begin_layout Subsubsection
+SFDR: Spurious Free Dynamic Range
+\end_layout
+
+\begin_layout Section
+ACT: ADC Characterization Toolkit
+\end_layout
+
+\begin_layout Subsection
+Single tone mode
+\end_layout
+
+\begin_layout Standard
+When using this modality, the program will analyze data read either from
+ an ADC or a file.
+ The data must have been generated by sampling a single sinusoidal wave.
+ 
+\end_layout
+
+\begin_layout Standard
+The file structure is rather easy:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+[SIGNAL]
+\end_layout
+
+\begin_layout Plain Layout
+
+nbits = n
+\end_layout
+
+\begin_layout Plain Layout
+
+rate = Fs
+\end_layout
+
+\begin_layout Plain Layout
+
+data =<tab>data[0]
+\end_layout
+
+\begin_layout Plain Layout
+
+<tab>data[1]
+\end_layout
+
+\begin_layout Plain Layout
+
+..
+\end_layout
+
+\begin_layout Plain Layout
+
+<tab>data[M -1]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+n number of bits of the ADC;
+\end_layout
+
+\begin_layout Description
+Fs sampling rate;
+\end_layout
+
+\begin_layout Description
+data a list of integers that represent the signal, always preceded by a
+ TAB character.
+ 
+\end_layout
+
+\begin_layout Subsection
+Two tone mode
+\end_layout
+
+\begin_layout Subsection
+Transfer function mode
+\end_layout
+
+\end_body
+\end_document
