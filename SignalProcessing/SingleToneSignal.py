@@ -123,14 +123,14 @@ class SingleToneSignal(Signal):
         output.ludft = 10*log10(output.udft)
         print output.ldft[:50]
         output.w0 = w0 = self.w0
-        output.w0index = w0index =self.w0index
+        output.w0index = w0index = self.w0index
         amplitude = hypot(self.A, self.B)
         phase = arctan2(self.B, self.A)
         
         A, B, C = self.A, self.B, self.C
         
         # THD
-        tenHarmonics = list(output.harmonicPeaksGenerator(2, 10))
+        tenHarmonics = list(output.harmonicPeaksGenerator(2, 30))
         thindex = vstack(map(lambda x: x[0], tenHarmonics))
         thvalues = vstack(map(lambda x: x[2], tenHarmonics))
 
@@ -146,29 +146,34 @@ class SingleToneSignal(Signal):
         filteredNoise = where(output.dft < avgHarmonics, output.dft, 0)
         output.noiseFloor = dB(mean(filteredNoise))
         
-        output.signalPower = norm(output.dft)
-        output.signalPower *= output.signalPower / self.nsamples
+        output.signalPower = (norm(output.dft)**2)/self.nsamples
+        # output.signalPower *= output.signalPower / self.nsamples
         
         time = arange(0, self.nsamples, dtype=float)/self.rate
         thSin = C + A * cos(w0*time) + B * sin(w0*time)
         output.th = copy(thSin)
-
-        noise = self.data - thSin
-
-        output.noisePower = norm(noise)
-        output.noisePower *= output.noisePower
-
-        # now we can evaluate SNR = max component - noise floor - process gain
-        output.SNR = 10*log10(output.signalPower/output.noisePower)
-
-        # now it's time for SINAD
-        clean = copy(output.dft)
         
-        clean[0] = 0
-        clean[w0index] = 0
-        clean[-w0index] = 0
-        output.SINAD = dB(output.dft[w0index]/norm(clean))
-
+        #noise = self.data - thSin
+        
+        noiseMask = array(ones(len(output.dft)))
+        noiseMask[0] = 0 # shouldn't be necessary
+        noiseMask[w0index] = 0
+        noiseMask[-w0index] = 0
+        for i in thindex: noiseMask[int(i)] = 0
+        
+        noise = where(noiseMask, self.data, 0)
+        output.noisePower = (norm(noise)**2) / self.nsamples
+        
+        # now we can evaluate SNR = max component - noise floor - process gain
+        #output.SNR = 10*log10(output.signalPower/output.noisePower)
+        num = output.signalPower
+        output.SNR = 20*log10(num/output.noisePower)
+        
+        # now it's time for SINAD
+        rmsNoise = sqrt(sum((self.data -thSin)**2)/len(self.data))
+        rmsSignal = max(self.data)/sqrt(2)
+        output.SINAD = dB(rmsSignal/rmsNoise)
+        
         # ENOB
         fsr = 2**(self.nbits -1)
         ra = (max(output.data) - min(output.data))/2.0
@@ -182,6 +187,7 @@ class SingleToneSignal(Signal):
         
         output.SFDR = 10*log10(output.dft[w0index]/secondPeak)
         
+        output.report()
         return output
     
     def histogram_resolution(self):
