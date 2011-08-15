@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
     modes = (("Single tone performances",       SingleToneSignal),
              ("Two tones intermodulation",      TwoToneSignal),
              ("Frequency response evaluation",  Signal),
-             ("Time signal representation",     Signal))
+             ("Time signal representation",     Signal))[0:1]
              
     # nell'ordine
     tabs  = ((True,  True,  True,  True,  True, False, False),
