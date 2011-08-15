@@ -39,12 +39,12 @@ class WindowFunction(object):
         return self.function(key, *self.dump())
 
 windows = {
-    'No window' : WindowFunction('No window', ones, [])#,
-    #'Bartlett' : WindowFunction('Bartlett', bartlett, []),
-    #'Blackman' : WindowFunction('Blackman', blackman, []),
-    #'Hamming' : WindowFunction('Hamming', hamming, []),
-    #'Hanning' : WindowFunction('Hanning', hanning, []),
-    #'Kaiser' : WindowFunction('Kaiser', kaiser, ["Beta", 14])
+    'No window' : WindowFunction('No window', ones, []),
+    'Bartlett' : WindowFunction('Bartlett', bartlett, []),
+    'Blackman' : WindowFunction('Blackman', blackman, []),
+    'Hamming' : WindowFunction('Hamming', hamming, []),
+    'Hanning' : WindowFunction('Hanning', hanning, []),
+    'Kaiser' : WindowFunction('Kaiser', kaiser, ["Beta", 14])
 }
 
 if __name__ == "__main__":
