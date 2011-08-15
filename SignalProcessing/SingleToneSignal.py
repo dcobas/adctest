@@ -50,8 +50,8 @@ class SingleToneSignal(Signal):
     def items(self):
         output = super(SingleToneSignal, self).items()
         
-        output.append(('Max DNL', "%.f ", self.maxDNL))
-        output.append(('Max INL', "%.f ", self.maxINL))
+        output.append(('Max DNL', "%f ", self.maxDNL))
+        output.append(('Max INL', "%f ", self.maxINL))
         output.append(('Theoretical SNR', "%.2f dB", self.thSNR))
         output.append(('Process Gain', "%.2f dB", self.processGain))
         
