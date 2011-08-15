@@ -13,40 +13,98 @@ def sineguess(dft, rate, nsamples):
 
     return w0, w0index
 
+def doubleSinefit3(samples, sample_t, w0, w1):
+    """fit a sampled wave to a sine of kwnown frequency
+        
+        This routine implements the algoritm of IEEE 1241, sect. 4.1.4.1.,
+        fitting a sine of given frequency w0 to the samples given, which are
+        assumed equally spaced by a sample period of sample_t
+        
+        a0 cos(w0 t + theta) + b0 sin(w0 t + theta) + c0
+        
+        The return value is the triple (a0, b0, c0)
+        """
+    
+    n = samples.size
+    t = arange(n) * sample_t
+    D0T = matrix(vstack([cos(w0*t), sin(w0*t), cos(w1*t), sin(w1*t), ones(n)]))
+    D0 = D0T.T
+    x0 = (D0T * D0).I * D0T * matrix(samples).T
+    return array(x0).reshape((5,))
+
+def doubleSinefit4matrix(samples, sample_t, w0, w1, tol=1e-7):
+    """fit a sampled wave to a sine of unknown frequency
+        
+        This routine implements the algorithm of IEEE 1241, sect. 4.1.4.3.,
+        fitting a sine wave the the samples given, which are assumed equally
+        spaced in time by a sample period sample_t. 
+        
+        a0 cos(w0 t + theta) + b0 sin(w0 t + theta)
+        a1 cos(w1 t + theta) + b1 sin(w1 t + theta) + c0
+        
+        An initial frequency estimate w0 is required to start, and an
+        optional relative error in frequency is admitted (1e-4 by default)
+        
+        The return value is the quadruple (w0, a0, b0, c0)
+        """
+    
+    a0, b0, a1, b1, c0 = sinefit3(samples, sample_t, w0, w1)
+    deltaw0 = 0
+    deltaw1 = 0
+    
+    while True:
+        w0 += deltaw0
+        w1 += deltaw1
+        
+        n = samples.size
+        t = arange(n) * sample_t
+        w0t = w0 * t
+        w1t = w1 * t
+        
+        D0T = matrix(vstack([cos(w0t), sin(w0t), cos(w1t), sin(w1t), ones(n),
+                             -a0*t*sin(w0t) + b0*t*cos(w0t), -a1*t*sin(w1t)+b1*t*cos(w1t)]))
+        D0 = D0T.T
+        x0 = (D0T * D0).I * D0T * matrix(samples).T
+        x0 = array(x0).reshape((7,))
+        a0, b0, a1, b1, c0, deltaw0, deltaw1 = x0
+        if max(abs(deltaw1/w1), abs(deltaw0/w0)) < tol:
+            return (w0+deltaw0, a0, b0), (w1+deltaw1, a1, b1), c0
+
+
 def sinefit3(samples, sample_t, w0):
     """fit a sampled wave to a sine of kwnown frequency
-
-    This routine implements the algoritm of IEEE 1241, sect. 4.1.4.1.,
-    fitting a sine of given frequency w0 to the samples given, which are
-    assumed equally spaced by a sample period of sample_t
-
+        
+        This routine implements the algoritm of IEEE 1241, sect. 4.1.4.1.,
+        fitting a sine of given frequency w0 to the samples given, which are
+        assumed equally spaced by a sample period of sample_t
+        
         a0 cos(w0 t + theta) + b0 sin(w0 t + theta) + c0
-
-    The return value is the triple (a0, b0, c0)
-    """
-
+        
+        The return value is the triple (a0, b0, c0)
+        """
+    
     n = samples.size
     t = w0 * arange(n) * sample_t
     D0T = matrix(vstack([cos(t), sin(t), ones(n)]))
     D0 = D0T.T
     x0 = (D0T * D0).I * D0T * matrix(samples).T
     return array(x0).reshape((3,))
-    
+
 def sinefit4matrix(samples, sample_t, w0, tol=1e-7):
     """fit a sampled wave to a sine of unknown frequency
-
-    This routine implements the algorithm of IEEE 1241, sect. 4.1.4.3.,
-    fitting a sine wave the the samples given, which are assumed equally
-    spaced in time by a sample period sample_t. 
-
+        
+        This routine implements the algorithm of IEEE 1241, sect. 4.1.4.3.,
+        fitting a sine wave the the samples given, which are assumed equally
+        spaced in time by a sample period sample_t. 
+        
         a0 cos(w0 t + theta) + b0 sin(w0 t + theta) + c0
-
-    An initial frequency estimate w0 is required to start, and an
-    optional relative error in frequency is admitted (1e-4 by default)
-
-    The return value is the quadruple (w0, a0, b0, c0)
-    """
-
+        
+        An initial frequency estimate w0 is required to start, and an
+        optional relative error in frequency is admitted (1e-4 by default)
+        
+        The return value is the quadruple (w0, a0, b0, c0)
+        """
+    
     a0, b0, c0 = sinefit3(samples, sample_t, w0)
     deltaw0 = 0
     while True:
@@ -55,7 +113,7 @@ def sinefit4matrix(samples, sample_t, w0, tol=1e-7):
         t = arange(n) * sample_t
         w0t = w0 * t
         D0T = matrix(vstack([cos(w0t), sin(w0t), ones(n),
-                    -a0*t*sin(w0t) + b0*t*cos(w0t)]))
+                             -a0*t*sin(w0t) + b0*t*cos(w0t)]))
         D0 = D0T.T
         x0 = (D0T * D0).I * D0T * matrix(samples).T
         x0 = array(x0).reshape((4,))
