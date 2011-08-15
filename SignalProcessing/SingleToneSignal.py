@@ -104,7 +104,7 @@ class SingleToneSignal(Signal):
         if self.nsamples == 0: 
             return output
         
-        
+         
         output.nsamples = self.nsamples
         output.rate = self.rate
         
@@ -222,7 +222,7 @@ class SingleToneSignal(Signal):
         
         factor = sin(hpi * Mt / (Mt + self.realHistogram[0] + self.realHistogram[-1]))
         n = arange(0, res)-hres
-        n = arcsin((n)/(hres)) - arcsin((n-1)/(hres))
+        n = arcsin((n)/(factor*hres)) - arcsin((n-1)/(factor*hres))
         
         result =  (n * Mt / pi)
         
