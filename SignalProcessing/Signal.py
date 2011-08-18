@@ -38,54 +38,17 @@ class Signal(object):
         self.data = self.fulldata
         self.nsamples = len(data)
         
+        
         if self.fullnsamples > 0:
             # remove DC component
             self.fulldata -= (max(self.fulldata) +min(self.fulldata))/2.
-            
-            # calculate the |fft|
-            self.fulldft = abs(fft.fft(self.fulldata))
-            
-            # useful names
-            N = len(data)
-            fdft = self.fulldft
-            
-            # index of the biggest peak
-            first = 1. + argmax(fdft[1:N/2])
-            
-            # index of the biggest peak nearest to `first`
-            # can only be first +-1. 
-            second = first + (argmax(fdft[first-1:first+2:2])*2) -1
-            ratio = (fdft[second] / fdft[first])
-            
-            # save first in self
-            self.first = first
-            
-            # self.beta quantifies the sampling incoherency, defining the 
-            # fraction of a period sampled in excess.
-            self.beta =  N/pi * arctan(sin(pi/N)/(cos(pi/N)+1./ratio))
-            
-            # the position the peak between first and second
-            self.w0index = first+ self.beta   
-            
-            # sampling frequency
-            freqSample = 2 * pi * self.rate
-            
-            # initial frequency guess
-            w0 = freqSample * float(self.w0index)/self.nsamples
-            print "Frequency initial guess ->", w0 
-            
-            # fit the sine 
-            self.w0, self.A, self.B, self.C  = Sinefit.sinefit4(data, 1.0/rate, w0, 1e-7)
-            print "Frequency fit ->", self.w0
-            
-            # limit data removing incoherency
-            self.w0index = self.w0 /freqSample * self.nsamples
-            self.limit = floor(0.5 + N*int(self.w0index)/self.w0index)
-            self.data = data[:self.limit]
-            self.nsamples = len(self.data)  
-            print "limit is:", self.limit
+            self.data = self.fulldata
         
         self.precalculateAll()
+    
+    def report(self):
+        for i in self.items():
+            print "%s: %s" % (i[0], i[1] % i[2])
     
     def items(self):
         """Create a list of tuples that describes the signal. 
@@ -101,9 +64,6 @@ class Signal(object):
         output.append(('Number of bits', '%d b', self.nbits))
         output.append(('Sampling rate', '%.2f Hz', self.rate))
         output.append(('Number of samples', "%d samples", self.nsamples))
-        output.append(('Peak at', "%f", self.w0index))
-        output.append(('Input frequency', "%.6f Hz", self.w0/2/pi))
-        output.append(('Beta', "%f", self.beta))
         
         return output    
     

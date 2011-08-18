@@ -32,7 +32,7 @@ def doubleSinefit3(samples, sample_t, w0, w1):
     x0 = (D0T * D0).I * D0T * matrix(samples).T
     return array(x0).reshape((5,))
 
-def doubleSinefit4matrix(samples, sample_t, w0, w1, tol=1e-7):
+def doubleSinefit4matrix(samples, sample_t, w0, w1, tol=1e-9):
     """fit a sampled wave to a sine of unknown frequency
         
         This routine implements the algorithm of IEEE 1241, sect. 4.1.4.3.,
@@ -48,7 +48,7 @@ def doubleSinefit4matrix(samples, sample_t, w0, w1, tol=1e-7):
         The return value is the quadruple (w0, a0, b0, c0)
         """
     
-    a0, b0, a1, b1, c0 = sinefit3(samples, sample_t, w0, w1)
+    a0, b0, a1, b1, c0 = doubleSinefit3(samples, sample_t, w0, w1)
     deltaw0 = 0
     deltaw1 = 0
     

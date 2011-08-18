@@ -50,6 +50,9 @@ class SingleToneSignal(Signal):
     def items(self):
         output = super(SingleToneSignal, self).items()
         
+        output.append(('Peak at', "%f", self.w0index))
+        output.append(('Input frequency', "%.6f Hz", self.w0/2/pi))
+        output.append(('Beta', "%f", self.beta))
         output.append(('Max DNL', "%f ", self.maxDNL))
         output.append(('Max INL', "%f ", self.maxINL))
         output.append(('Theoretical SNR', "%.2f dB", self.thSNR))
@@ -61,7 +64,56 @@ class SingleToneSignal(Signal):
     def precalculateAll(self):
         """Evaluates all the parameters of the signal, and also call the
         precalculate method for each window function we know."""
-
+        
+        if self.fullnsamples > 0:
+            # remove DC component
+            # self.fulldata -= (max(self.fulldata) +min(self.fulldata))/2.
+            
+            # calculate the |fft|
+            self.fulldft = abs(fft.fft(self.fulldata))
+            
+            # useful names
+            data = self.data    
+            rate = self.rate
+            N = len(data)
+            fdft = self.fulldft
+            
+            # index of the biggest peak
+            first = 1. + argmax(fdft[1:N/2])
+            
+            # index of the biggest peak nearest to `first`
+            # can only be first +-1. 
+            second = first + (argmax(fdft[first-1:first+2:2])*2) -1
+            ratio = (fdft[second] / fdft[first])
+            
+            # save first in self
+            self.first = first
+            
+            # self.beta quantifies the sampling incoherency, defining the 
+            # fraction of a period sampled in excess.
+            self.beta =  N/pi * arctan(sin(pi/N)/(cos(pi/N)+1./ratio))
+            
+            # the position the peak between first and second
+            self.w0index = first+ self.beta   
+            
+            # sampling frequency
+            freqSample = 2 * pi * self.rate
+            
+            # initial frequency guess
+            w0 = freqSample * float(self.w0index)/self.nsamples
+            print "Frequency initial guess ->", w0 
+            
+            # fit the sine 
+            self.w0, self.A, self.B, self.C  = Sinefit.sinefit4(data, 1.0/rate, w0, 1e-7)
+            print "Frequency fit ->", self.w0
+            
+            # limit data removing incoherency
+            self.w0index = self.w0 /freqSample * self.nsamples
+            self.limit = floor(0.5 + N*int(self.w0index)/self.w0index)
+            self.data = data[:self.limit]
+            self.nsamples = len(self.data)  
+            print "limit is:", self.limit  
+        
         # First of all evaluate the histograms
         skip = False
          
