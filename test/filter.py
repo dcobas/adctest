@@ -9,7 +9,7 @@ src.close()
 
 dest = open(argv[2], "w")
 dest.write("[SIGNAL]\nnbits = %s\nrate = %s\ndata = " % (argv[3], argv[4]))
-dest.writelines('\t%d\n ' % i for i in lines[48:])
+dest.writelines('\t%d\n ' % i for i in lines[int(argv[6]):])
 dest.close()    
  
 
