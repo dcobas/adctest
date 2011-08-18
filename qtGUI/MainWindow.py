@@ -15,10 +15,6 @@ from numpy import *
 from PyQt4.Qwt5 import QwtPlotGrid  
 
 class MainWindow(QMainWindow):
-    modes = (("Single tone performances",       SingleToneSignal),
-             ("Two tones intermodulation",      TwoToneSignal),
-             ("Frequency response evaluation",  Signal),
-             ("Time signal representation",     Signal))[0:1]
              
     # nell'ordine
     tabs  = ((True,  True,  True,  True,  True, False, False),
@@ -35,6 +31,12 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
         
+    
+        self.modes = (("Single tone performances",       SingleToneSignal, self.updateST),
+                     ("Two tones intermodulation",      TwoToneSignal, self.updateTT),
+                     ("Frequency response evaluation",  Signal),
+                     ("Time signal representation",     Signal))[0:2]
+    
         self.ui =  MainUI.Ui_MainWindow()
         self.ui.setupUi(self)
         
@@ -199,12 +201,14 @@ class MainWindow(QMainWindow):
         
         return enabled, self.realHistogram, self.idealHistogram, self.DNL, self.maxDNL, self.INL, self.maxINL
     
-    def redrawPlots(self, *args, **kwargs):
+    def redrawPlotsST(self, *args, **kwargs):
         x = self.signal.nsamples
         timeRange = arange(x)
         self['time'].curves['original'].setData(timeRange, self.signal.data)
         self['time'].curves['windowed'].setData(timeRange, self.window().data)
         self['time'].curves['theoretical'].setData(timeRange, self.window().th)
+        self['time'].curves['windowed'].show()
+        self['time'].curves['theoretical'].show()
         self['time'].replot()
 
         freqRange = arange(x/2)
@@ -222,7 +226,25 @@ class MainWindow(QMainWindow):
         self['hist'].curves['ideal'].setData(hRange, self.signal.idealHistogram)
         self['hist'].replot()
     
+    def redrawPlotsTT(self, *args, **kwargs):
+        x = self.signal.nsamples
+        timeRange = arange(x)
+        self['time'].curves['original'].setData(timeRange, self.signal.data)
+        
+        print dir(self['time'].curves['windowed'])
+        self['time'].curves['windowed'].hide()
+        self['time'].curves['theoretical'].hide()
+        self['time'].replot()
+
+        freqRange = arange(x/2)
+        self['ttm'].curves['original'].setData(freqRange, self.signal.lfft[:x/2])
+        self['ttm'].replot()
+        
+        
     def update(self, *args, **kwargs):
+        self.modes[self.mode][2](*args, **kwargs)
+            
+    def updateST(self, *args, **kwargs):
         self.ui.propertiesList.clear() 
         
         if self.signal.nsamples > 0  :
@@ -237,7 +259,16 @@ class MainWindow(QMainWindow):
             for x in xrange(len(peaks)):
                 self.ui.propertiesList.addTopLevelItem(QTreeWidgetItem(["Harmonic no. %d" % (x +2), "%.6f dB" % peaks[x][2]]))
        
-        self.redrawPlots()
+        self.redrawPlotsST()
+        
+    def updateTT(self, *args, **kwargs):
+        self.ui.propertiesList.clear() 
+        
+        if self.signal.nsamples > 0  :
+            items = [QTreeWidgetItem([i[0], i[1] % i[2]]) for i in self.signal.items()]
+            self.ui.propertiesList.addTopLevelItems(items)
+       
+        self.redrawPlotsTT()
     
     def slotOpenfile(self):
         fileName = str(QFileDialog.getOpenFileName(self, caption = "Open file", filter = "*.txt"))
@@ -250,5 +281,3 @@ class MainWindow(QMainWindow):
         self.signal = self.modes[self.mode][1](*readFile(fileName)) 
         self.update()
         
-    
-    
