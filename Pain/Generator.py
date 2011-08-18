@@ -5,7 +5,7 @@ def Property(func):
     return property(**func())
     
 """This class should manage the Agilent 33250A waveform generator"""
-class SerialInterface(serial.Serial):
+class Generator(serial.Serial):
     def __init__(self, device = "/dev/ttyUSB0", bauds = 57600, to = 2, interCharTimeout=1):
         serial.Serial.__init__(self, device, bauds, timeout = to, interCharTimeout = 1)
     
