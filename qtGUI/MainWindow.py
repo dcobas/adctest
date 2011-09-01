@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         self.ui.wgFSR.setValue(5.)
         self.ui.wgBits.setValue(24)
         self.ui.wgFs.setValue(50e6)
-        self.ui.wgSamples.setValue(10000)
+        self.ui.wgSamples.setValue(8000)
         
         # populate window box
         windows = SignalProcessing.WindowFunction.windows.keys()
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
     ############################################################################
     ## Plans
     ############################################################################
-    def waveGenerate(self):
+    def waveGenerate(self, rate = None, bits = None, samples = None):
         rate = float(self.ui.wgFs.value())
         bits = int(self.ui.wgBits.value())
         
@@ -394,10 +394,15 @@ class MainWindow(QMainWindow):
         # if the generator cannot directly support this 
         playable = self.generator.adaptKeys()
         if type(self.wave) not in playable:
+            fsr = float(self.ui.wgFSR.value())
+            bits = self.adc.get('nrBits')
+            
+            data, f = self.wave.generatePeriod(bits, 1000, fsr)
+            self.generator.set('frequency', f)
+            self.generator.play(data)
             def play():
-                bits, rate, wave = self.waveGenerate()    
-                self.generator.set('frequency', rate)
-                self.generator.play(wave)
+                data, f = self.wave.generatePeriod(bits, 1000, fsr)
+                self.generator.set('frequency', f)
         else:
             def play():
                 self.generator.play(self.wave)

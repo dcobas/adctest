@@ -78,9 +78,14 @@ class TwoToneSignal(Signal):
         delta = abs(self.w1 - self.w2)
         
         i1 = min([self.w1, self.w2]) - delta
-        i2 = max([self.w1, self.w2]) + delta    
-        fw1, fw2 = self.fft[self.toi(self.w1)], self.fft[self.toi(self.w2)]
-        fi1, fi2 = max(self.fft[self.toi(i1)-1:self.toi(i1)+2]), max(self.fft[self.toi(i2)-1:self.toi(i2)+2])
+        i2 = max([self.w1, self.w2]) + delta
+        
+        temp1, temp2 = self.toi(self.w1), self.toi(self.w2)
+        fw1, fw2 = max(self.fft[temp1-1:temp1+2]), max(self.fft[temp2-1:temp2+2])
+        
+        temp1, temp2 = self.toi(i1), self.toi(i2)
+        fi1, fi2 = max(self.fft[temp1-1:temp1+2]), max(self.fft[temp2-1:temp2+2])
+        
         print fw1, fw2
         print fi1, fi2
         meaningful = hypot(fw1, fw2)

@@ -83,8 +83,11 @@ class SingleToneSignal(Signal):
             
             # index of the biggest peak nearest to `first`
             # can only be first +-1. 
-            second = first + (argmax(fdft[first-1:first+2:2])*2) -1
+            second = first +  ((fdft[first-1]<fdft[first+1])*2) -1
             ratio = (fdft[second] / fdft[first])
+            
+            print first, second
+            print ratio
             
             # save first in self
             self.first = first
@@ -92,9 +95,15 @@ class SingleToneSignal(Signal):
             # self.beta quantifies the sampling incoherency, defining the 
             # fraction of a period sampled in excess.
             self.beta =  N/pi * arctan(sin(pi/N)/(cos(pi/N)+1./ratio))
+            print self.beta
             
             # the position the peak between first and second
-            self.w0index = first+ self.beta   
+            if first > second:
+                self.w0index = first- self.beta
+            else: 
+                self.w0index = first+self.beta
+            
+            print self.w0index
             
             # sampling frequency
             freqSample = 2 * pi * self.rate
@@ -154,7 +163,6 @@ class SingleToneSignal(Signal):
             
         if self.nsamples == 0: 
             return output
-        
          
         output.nsamples = self.nsamples
         output.rate = self.rate
