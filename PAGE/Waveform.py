@@ -10,6 +10,7 @@ class Waveform(Item):
     def set(self, what, how):
         """Set an attribute value. Supports Pyro4."""
         self.__setattr__(what, how)
+    
     """A waveform must provide this method. 
     Create a numeric array which represents the wave."""
     def generate(self, nbits, frequency, samples, fsr):
@@ -17,4 +18,7 @@ class Waveform(Item):
 
     def __init__(self, *args, **kwargs):
         Item.__init__(self, *args, **kwargs)
+    
+    def getType(self):
+        return type(self)
         
