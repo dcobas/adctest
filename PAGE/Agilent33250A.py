@@ -1,30 +1,38 @@
 from Generator import * 
 from SineWaveform import SineWaveform
+from TTWaveform import TTWaveform
 from serial import Serial
 from struct import pack
 from time import sleep
 from numpy import ndarray
-#~ import progressbar as pbar
 
-"""This class should manage the Agilent 33250A waveform generator"""
+import Pyro4
+import Pyro4.util
+
+"""This class manages the Agilent 33250A waveform generator, offering different ways
+to control its output."""
 class Agilent33250A(Generator):
-    _parameters = {'device':('Serial device', 'Serial device used to communicate with the generator', "/dev/ttyUSB1", 'file'),
-                  'bauds':('Bauds', 'Speed of the communication', 9600, int),
-                  'to':('Timeout', 'Timeout during read operations',  2, int),
-                  'ict':('Inter character space', 'Pause time between each character sent',  1, int)}
+    def get(self, what):
+        """Get an attribute value. Supports Pyro4."""
+        return self.__getattribute__(what)
+    
+    def set(self, what, how):
+        """Set an attribute value. Supports Pyro4."""
+        self.__setattr__(what, how)
+    
+    _parameters = {'device':['Serial device', 'Serial device used to communicate with the generator', "/dev/ttyUSB1", 'file'],
+                  'bauds':['Bauds', 'Speed of the communication', 9600, int],
+                  'to':['Timeout', 'Timeout during read operations',  2, int],
+                  'ict':['Inter character space', 'Pause time between each character sent',  1, int]}
                   
+    # These are the functions the generator supports.
     functionList = ('SIN', 'SQU', 'RAMP', 'PULS', 'NOIS', 'DC', 'USER')
     
     def __init__(self, *args, **kwargs):
-        self.parameters = dict(self._parameters)
+        """The initializer doesn't connect to the device."""
+        Generator.__init__(self, *args, **kwargs)
         
-        for i in kwargs: 
-            if i in self.parameters.keys():
-                self.parameters[i][2] = kwargs[i]
-        for i in self.parameters.keys():
-            self.__setattr__(i, self.parameters[i][2])
-        
-        
+        self.connected = False
         self.adaptDict = {SineWaveform: self.adaptSine,
                           list: self.adaptData,
                           tuple: self.adaptData,
@@ -32,32 +40,53 @@ class Agilent33250A(Generator):
                           str: self.adaptSavedFunction}
     
     def connect(self):
+        """ Connect to the device"""
         self.comm = Serial(port = self.device, baudrate = self.bauds, timeout = self.to, interCharTimeout=self.ict)
-        self.comm.read(2)
+        print 'Waiting for 2 bytes from the device:', self.comm.read(2)
+        self.connected = True
+    
+    def close(self):
+        """Close the connection to the device"""
+        
+        if self.connected:
+            return
+        
+        self.comm.close()
+        self.connected = False
     
     # utilities
     def adaptSavedFunction(self, wave, *args, **kwargs):
+        """Play an already uploaded function."""
         self.function = ('USER', wave)
         return ""
         
     def adaptSine(self, wave, *args, **kwargs):
+        """Adapt a SineWaveform to a generator command"""
         return "APPL:SIN %d HZ, %d VPP, %d V" % (wave.frequency, wave.amplitude, wave.dc)
-    
+        
     def adaptData(self, data, *args, **kwargs):
+        """Upload data to the volatile memory of the device and select it"""
         self.dataUpload(data, *args, **kwargs)
         self.function = ('USER')
         self.function = ('USER', 'VOLATILE')
         return ''
     
     def play(self, wave, *args, **kwargs):
-        self.command(self.adapt(wave, *args, **kwargs))
+        '''Play a wave'''
+        cmd = self.adapt(wave, *args, **kwargs)
+        self.command(cmd)
         
     def command(self, what):
+        '''Send a (list of) command(s) to the device: a command is a string, and
+        this function appends automatically a new line.'''
         if len(what) == 0: 
             return
         
         if type(what) is str:
             what = (what, )
+        
+        if not self.connected:
+            self.connect()
         
         return sum(map(lambda x: self.comm.write("%s\n" % x), what))
     
@@ -244,28 +273,8 @@ class Agilent33250A(Generator):
         TTW is the time to wait between each character of the sequence, which
         is transferred in ASCII"""
         
-        #~ i = str(len(data))
-        #~ widgets = ['Something: ', pbar.Percentage(), ' ', pbar.Bar(),
-           #~ ' ', pbar.ETA(), ' ', pbar.FileTransferSpeed()]
-        #~ progress = pbar.ProgressBar(widgets=widgets)
-
-        #~ d = pack('>%sh', data)
-        
-        #~ command = 'DATA:DAC VOLATILE, #%d%s %s\n' % (len(i), i, d)
-        #~ progress = pbar.ProgressBar(widgets=widgets)
-        #~ for i in progress(command):
-            #~ self.comm.write(i)
-            #~ sleep(ttw)
-        
-        #~ return
-        
         command = 'DATA:DAC VOLATILE, %s\n' % ', '.join(str(i) for i in data)
-        print "writing"
         self.comm.write(command)
-        print "done"
-        #for i in progress(command):
-        #    self.comm.write(i)
-        #    sleep(ttw)
     
     def dataStore(self, destination):
         """Save VOLATILE waveform into 'destination'"""
@@ -312,10 +321,12 @@ class Agilent33250A(Generator):
             self.command('DATA:DEL:ALL')
         else:
             self.command('DATA:DEL %s' % what)
-        
     
-    # commands 
     def sweep(self, interval, waves, callback = None):
+        '''Commodity function: play all the waves in 'waves' with a pause of
+        'interval' seconds between each. If present, calls 'callback' passing
+        the wave as a first parameter.'''
+        
         for w in waves:
             self.play(w)
             sleep(interval)
@@ -323,17 +334,29 @@ class Agilent33250A(Generator):
             if callback is not None:
                 callback(w)
 
+# specify the name of the module
+name = 'Agilent 33250A'
+
+# the interesting class 
+target = Agilent33250A
+
+import sys
+import commands
+
+def launch():
+    g = target()
+    g.device = sys.argv[1]
+    g.connect()
+    hn = commands.getoutput('hostname')
+    
+    daemon=Pyro4.Daemon(host = hn)
+    
+    myUri = daemon.register(g)
+    
+    ns=Pyro4.locateNS()
+    ns.register("Agilent33250A", myUri)
+    daemon.requestLoop()
 
 if __name__ == '__main__':
-    import sys
-    g = Agilent33250A(sys.argv[1])
-    g.output = True
-    
-    waves = [SineWaveform(f = (i, 'KHZ')) for i in xrange(1, 30)]
-    def callback(x):
-        print x.frequency
-    
-    g.sweep(0.2, waves, callback)
-    
-    g.output = False
+    launch()
     
