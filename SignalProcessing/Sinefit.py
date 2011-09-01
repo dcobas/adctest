@@ -32,7 +32,7 @@ def doubleSinefit3(samples, sample_t, w0, w1):
     x0 = (D0T * D0).I * D0T * matrix(samples).T
     return array(x0).reshape((5,))
 
-def doubleSinefit4matrix(samples, sample_t, w0, w1, tol=1e-9):
+def doubleSinefit4matrix(samples, sample_t, w0, w1, tol=1e-12):
     """fit a sampled wave to a sine of unknown frequency
         
         This routine implements the algorithm of IEEE 1241, sect. 4.1.4.3.,
@@ -90,7 +90,7 @@ def sinefit3(samples, sample_t, w0):
     x0 = (D0T * D0).I * D0T * matrix(samples).T
     return array(x0).reshape((3,))
 
-def sinefit4matrix(samples, sample_t, w0, tol=1e-7):
+def sinefit4matrix(samples, sample_t, w0, tol=1e-12, imax = 50):
     """fit a sampled wave to a sine of unknown frequency
         
         This routine implements the algorithm of IEEE 1241, sect. 4.1.4.3.,
@@ -107,7 +107,10 @@ def sinefit4matrix(samples, sample_t, w0, tol=1e-7):
     
     a0, b0, c0 = sinefit3(samples, sample_t, w0)
     deltaw0 = 0
-    while True:
+    #while True:
+    for i in xrange(imax):
+        print 'Sinefit:', i
+        
         w0 += deltaw0
         n = samples.size
         t = arange(n) * sample_t
@@ -120,6 +123,7 @@ def sinefit4matrix(samples, sample_t, w0, tol=1e-7):
         a0, b0, c0, deltaw0 = x0
         if abs(deltaw0/w0) < tol:
             return (w0+deltaw0, a0, b0, c0)
+    return (w0+deltaw0, a0, b0, c0)
 
 def sinefit4scipy(data, Ts, w0, *args, **kwargs):
     # Target function
