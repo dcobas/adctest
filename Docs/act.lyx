@@ -161,7 +161,7 @@ status open
 \noindent
 \align center
 \begin_inset Graphics
-	filename images/adc_ideal.png
+	filename ../../adc.private/Docs/images/adc_ideal.png
 
 \end_inset
 
@@ -192,19 +192,6 @@ Ideal ADC transfer function
 \end_layout
 
 \begin_layout Subsection
-Single Tone performance evaluation
-\end_layout
-
-\begin_layout Standard
-In this mode the application will read a signal, be it from a file, synthetic
- or from an ADC, and will try to evaluate a bunch of parameters, assuming
- the data describes a sinewave.
- The algorithms will eliminate any incoherency during the performance evaluation
-, will then determine the frequency of the sinewave and then will calculate
- 
-\end_layout
-
-\begin_layout Subsubsection
 Parameters explained
 \end_layout
 
@@ -306,30 +293,6 @@ where
  is the i-th harmonic expressed in dB.
 \end_layout
 
-\begin_layout Subsection
-Two Tone Intermodulation Distortion evaluation
-\end_layout
-
-\begin_layout Standard
-The application will read a signal from a source that is supposed to represent
- two sinewaves with a very small difference between their frequencies.
- If the ADC introduces harmonic distortions, these will be close to the
- signal; these interferences cannot be easily eliminated by a filter.
-\end_layout
-
-\begin_layout Subsection
-Frequency Sweep evaluation
-\end_layout
-
-\begin_layout Standard
-This test mode is by far the most complete and complicated of all.
- The application will control directly both a waveform generator (it could
- also be a DAC) and the ADC being tested.
- The idea is to generate a sinewave with a constant amplitude and change
- its frequency in a defined range, using a certain succession of steps.
- 
-\end_layout
-
 \begin_layout Section
 Parameters evaluation formulae and algorithms 
 \end_layout
@@ -384,7 +347,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename images/sineWave_FFT_spectral_leakage.png
+	filename ../../adc.private/Docs/images/sineWave_FFT_spectral_leakage.png
 	width 100text%
 
 \end_inset
@@ -1032,29 +995,6 @@ A good value of
 
  is 10.
  
-\end_layout
-
-\begin_layout Section
-PAGE: Python ADC and Generators API
-\end_layout
-
-\begin_layout Standard
-The PAGE API offers a Pyhton interface to control both ADC and generators;
- a generator could be a waveform generator, like the Agilent 33250A, or
- a DAC.
- 
-\end_layout
-
-\begin_layout Subsection
-Generators
-\end_layout
-
-\begin_layout Standard
-A Generator is a device that outputs analog data following some specifications,
- or from a digital signal.
- All the generator should be able to produce a sinewave with a predefined
- amplitude, frequency and DC component.
- This allows us to implement  
 \end_layout
 
 \begin_layout Section
