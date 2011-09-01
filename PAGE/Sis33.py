@@ -1,6 +1,9 @@
 # 
 from ctypes import *
-from Configurable import *
+from ADC import *
+
+import Pyro4
+import Pyro4.util
 
 lib = CDLL("./libsis33.L865.so")
 
@@ -9,6 +12,12 @@ SIS33_TRIGGER_START, SIS33_TRIGGER_STOP = range(2)
 SIS33_CLKSRC_INTERNAL, SIS33_CLKSRC_EXTERNAL = range(2)
 
 class Sis33Acq(Structure):
+    def get(self, what):
+        return self.__getattribute__(what)
+    
+    def set(self, what, how):
+        self.__setattr__(what, how)
+    
     _fields_ = [("data",POINTER(c_uint16)),
                 ("nr_samples" , c_uint32),
                 ("prevticks", c_uint64),
@@ -60,27 +69,32 @@ def perror(s):
     lib.sis33_perror(s)
 
 """This class should manage a generic waveform generator"""
-class Sis33Device(object):
+class Sis33Device(ADC):
     _ptr = 0
-class SineWaveform(Waveform.Waveform):
-    _parameters = {'index':('Device Index', 'Serial device used to communicate with the generator', 2, int)}
+    _parameters = {'index':['Device Index', 'Index of the ADC', 2, int],
+                   'channel':['Channel', 'Channel to use for DAQ', 7, int],
+                   'segment':['Segment', 'Memory segment used for data storage', 0, int]}
+    
+    def get(self, what):
+        """Get an attribute value. Supports Pyro4."""
+        return self.__getattribute__(what)
+    
+    def set(self, what, how):
+        """Set an attribute value. Supports Pyro4."""
+        self.__setattr__(what, how)
     
     def __init__(self, *args, **kwargs):
-        self.parameters = dict(self._parameters)
-        
-        for i in kwargs: 
-            if i in self.parameters.keys():
-                self.parameters[i][2] = kwargs[i]
-        for i in self.parameters.keys():
-            self.__setattr__(i, self.parameters[i][2])
+        ADC.__init__(self, *args, **kwargs)
         
         self.pointer = lib.sis33_open(self.index)
     
-    def __del__(self, index):
+    def __del__(self):
+        """Destroy the object, if needed. Closes the device before dying."""
         if self._ptr != 0:
             self.close()
     
     def close(self):
+        """Close the device."""
         lib.sis33_close(self.pointer)
         self._ptr = 0 # bypass pointer
     
@@ -387,7 +401,7 @@ class SineWaveform(Waveform.Waveform):
     
     @Property
     def eventTimestampingDivider():
-        doc = "Current event timestamping divider on a device. "
+        doc = "Current event timestamping divider on a device."
         
         def fget(self):
             i = c_int()
@@ -403,47 +417,75 @@ class SineWaveform(Waveform.Waveform):
         return locals()
     
     def acq(self, segment, nr_events, ev_length):
+        'Acquires an event, storing it into segment.'
         ev_length = self.roundEventLength(ev_length, SIS33_ROUND_NEAREST)
         if lib.sis33_acq(self.pointer, segment, nr_events, ev_length):
             raise Sis33Exception.spawn('Acq')
         
     def acqWait(self, segment, nr_events, ev_length):
+        'Acquires an event, storing it into segment; blocking.'
         ev_length = self.roundEventLength(ev_length, SIS33_ROUND_NEAREST)
         if lib.sis33_acq_wait(self.pointer, segment, nr_events, ev_length):
             raise Sis33Exception.spawn('Acq Wait')
     
     def acqTimeout(self, segment, nr_events, ev_length, timeout):
+        'Acquires an event, storing it into segment; blocking with timeout.'
         ev_length = self.roundEventLength(ev_length, SIS33_ROUND_NEAREST)
         if lib.sis33_acq_timeout(self.pointer, segment, nr_events, ev_length, timeout):
             raise Sis33Exception.spawn('Acq Timeout')
     
     def acqCancel(self):
+        'Cancel an acquisition'
         if lib.sis33_acq_cancel(self.pointer): 
             raise Sis33Exception.spawn('Acq Cancel')
     
     def fetch(self, segment, channel, acqs, n_acqs, endtime):
+        'Fetch an event from a channel, stored in a segment.'
         if lib.sis33_fetch(self.pointer, segment, channel, acqs, n_acqs, endtime) < 0:
             raise Sis33Exception.spawn('Fetch')
         
     def fetchWait(self, segment, channel, acqs, n_acqs, endtime):
+        'Fetch an event from a channel, stored in a segment; blocking.'
         if lib.sis33_fetch_wait(self.pointer, segment, channel, acqs, n_acqs, endtime) < 0:
             raise Sis33Exception.spawn('Fetch Wait')
     
     def fetchTimeout(self, segment, channel, acqs, n_acqs, endtime, timeout):
+        'Fetch an event from a channel, stored in a segment; blocking with timeout.'
         if lib.sis33_fetch_timeout(self.pointer, segment, channel, acqs, n_acqs, endtime, timeout) < 0:
             raise Sis33Exception.spawn('Fetch Timeout')
     
-    def readEvent(self, channel, samples, segment = 0):
+    def readEvent(self, samples):
+        '''Read an event of size 'samples' from the ADC. Uses self.segment
+        and self.channel to select the missing parameters.'''
         ev_length = self.roundEventLength(samples, SIS33_ROUND_UP)
         
-        self.acqWait(segment, 1, ev_length)
+        self.acqWait(self.segment, 1, ev_length)
         a = Sis33Acq.zalloc(1, ev_length)
         t = Timeval()
         
-        self.fetchWait(segment, channel, byref(a[0]), 1, byref(t))
+        self.fetchWait(self.segment, self.channel, byref(a[0]), 1, byref(t))
         
         # memory leak!
         return [a[0].data[i] for i in xrange(samples)]
         
-        
-        
+name = 'Sis 33xx ADC'
+target = Sis33Device
+import sys
+import commands
+
+def launch():
+    g = target(int(sys.argv[1]))
+    hn = commands.getoutput('hostname')
+    
+    daemon=Pyro4.Daemon(host = hn)
+    
+    myUri = daemon.register(g)
+    
+    ns=Pyro4.locateNS()
+    ns.register("Sis33_%s" % sys.argv[1], myUri)
+    daemon.requestLoop()
+
+if __name__ == '__main__':
+    launch()
+
+
