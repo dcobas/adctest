@@ -49,10 +49,12 @@ class SingleToneSignal(Signal):
     
     def items(self):
         output = super(SingleToneSignal, self).items()
-        
-        output.append(('Peak at', "%f", self.w0index))
-        output.append(('Input frequency', "%.6f Hz", self.w0/2/pi))
-        output.append(('Beta', "%f", self.beta))
+                
+        # output.append(('Peak at', "%f", self.w0index))
+        # output.append(('Input frequency', "%.6f Hz", self.w0/2/pi))
+        # output.append(('Beta', "%f", self.beta))
+        output.append(('Amplitude', "%f", self.amplitude))
+        output.append(('Phase', "%f", self.phase))
         output.append(('Max DNL', "%f ", self.maxDNL))
         output.append(('Max INL', "%f ", self.maxINL))
         output.append(('Theoretical SNR', "%.2f dB", self.thSNR))
@@ -101,18 +103,18 @@ class SingleToneSignal(Signal):
             
             # initial frequency guess
             w0 = freqSample * float(self.w0index)/self.nsamples
-            print "Frequency initial guess ->", w0 
+            # print "Frequency initial guess ->", w0 
             
             # fit the sine 
             self.w0, self.A, self.B, self.C  = Sinefit.sinefit4(data, 1.0/rate, w0, 1e-7)
-            print "Frequency fit ->", self.w0
+            # print "Frequency fit ->", self.w0
             
             # limit data removing incoherency
             self.w0index = self.w0 /freqSample * self.nsamples
             self.limit = floor(0.5 + N*int(self.w0index)/self.w0index)
             self.data = data[:self.limit]
             self.nsamples = len(self.data)  
-            print "limit is:", self.limit  
+            # print "limit is:", self.limit  
         
         # First of all evaluate the histograms
         skip = False
@@ -162,7 +164,7 @@ class SingleToneSignal(Signal):
         
         window = WindowFunction.windows[windowName]
         
-        print len(self.data), self.nsamples
+        # print len(self.data), self.nsamples
         output.data = self.data * window[self.nsamples]
 
         output.dft = fft.fft(output.data)
@@ -173,11 +175,11 @@ class SingleToneSignal(Signal):
         
         output.ldft = 10*log10(output.dft)
         output.ludft = 10*log10(output.udft)
-        print output.ldft[:50]
+        # print output.ldft[:50]
         output.w0 = w0 = self.w0
         output.w0index = w0index = self.w0index
-        amplitude = hypot(self.A, self.B)
-        phase = arctan2(self.B, self.A)
+        self.amplitude = amplitude = hypot(self.A, self.B)
+        self.phase = phase = arctan2(self.B, self.A)
         
         A, B, C = self.A, self.B, self.C
         
@@ -239,7 +241,7 @@ class SingleToneSignal(Signal):
         
         output.SFDR = 10*log10(output.dft[w0index]/secondPeak)
         
-        output.report()
+        #output.report()
         return output
     
     def histogram_resolution(self):
@@ -284,8 +286,8 @@ class SingleToneSignal(Signal):
         
         result =  (n * Mt / pi)
         
-        print "len(result):", len(result)
-        print result
+        #print "len(result):", len(result)
+        #print result
         
         return result[2:]
         
