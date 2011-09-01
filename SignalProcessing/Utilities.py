@@ -27,7 +27,7 @@ def fake(x, y):
     return (i for i in [])
 
 @timeit
-def readFile(path):
+def readFile2(path):
     config = RawConfigParser()
     config.read(path)
     
@@ -38,4 +38,16 @@ def readFile(path):
     data = map(int, dataString)
     
     return nbits, rate, data
-
+    
+@timeit
+def readFile(path):
+    config = RawConfigParser()
+    config.read(path)
+    
+    nbits = config.getint('INFO', 'nbits')
+    rate = config.getint('INFO', 'rate')
+    elements = config.getint('INFO', 'elements')
+    
+    output = [map(int, config.get('SIGNAL-%d' % i, 'data').split('\n')) for i in xrange(elements)]
+    
+    return nbits, rate, output
