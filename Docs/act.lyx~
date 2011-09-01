@@ -1322,8 +1322,7 @@ This program helps to test ADC in a very detailed yet easy way, with a usable
 \begin_layout Standard
 ACT works with chains: a particular sequence of operations to execute in
  order to achieve a different result.
- (nice dot graph here) The majority of the operations are executed by PAGE
- items.
+ (nice dot graph here)
 \end_layout
 
 \begin_layout Subsection
