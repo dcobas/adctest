@@ -22,3 +22,8 @@ def parse(value, s):
     
     return tuple(str(i) for i in value)
 
+def prettyParameter(x, vx):
+    print 'Parameter %s is called %s.' % (x, vx[0])
+    print 'Description:', vx[1]
+    print 'Default value, in %s, is %s' % (repr(vx[3]), repr(vx[2]))
+
