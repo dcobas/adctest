@@ -45,11 +45,18 @@ class WindowedSignal:
     secondPeak = 0
     SFDR = 0
     
+    amplitude = 0
+    phase = 0
+    
     def items(self):
         output = []
         
-        output.append(('Input frequency', '%.5f Hz', self.w0/(2*pi)))
-        output.append(('Peak', '%d', self.w0index))
+        output.append(('Input frequency [W]', '%.5f Hz', self.w0/(2*pi)))
+        output.append(('Peak [W]', '%d', self.w0index))
+        output.append(('Amplitude [W]', "%f", self.amplitude))
+        output.append(('Phase [W]', "%f", self.phase))
+        output.append(('DC [W]', "%f", self.C)) 
+        
         output.append(('THD', '%.2f dB', self.THD))
         output.append(('Noise floor', "%g dB", self.noiseFloor))
         output.append(('Signal power', "%.f ", self.signalPower))

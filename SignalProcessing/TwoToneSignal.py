@@ -31,9 +31,13 @@ class TwoToneSignal(Signal):
         output.append(('Sine 1 frequency', "%f Hz", self.w1/2./pi))
         output.append(('Sine 1 A', "%f", self.a1))
         output.append(('Sine 1 B', "%f", self.b1))
+        output.append(('Sine 1 amplitude', "%f", self.amplitude1))
+        output.append(('Sine 1 phase', "%f", self.phase1))
         output.append(('Sine 2 frequency', "%f Hz", self.w2/2./pi))
         output.append(('Sine 2 A', "%f", self.a2))
         output.append(('Sine 2 B', "%f", self.b2))
+        output.append(('Sine 2 amplitude', "%f", self.amplitude2))
+        output.append(('Sine 2 phase', "%f", self.phase2))
         
         output.append(('DC component', "%f", self.c0))
         
@@ -65,6 +69,11 @@ class TwoToneSignal(Signal):
         
         (self.w1, self.a1, self.b1), (self.w2, self.a2, self.b2), self.c0 = \
             Sinefit.doubleSinefit4matrix(self.fulldata, self.rate**-1, tow1, tow2)
+        
+        self.amplitude1 = hypot(self.a1, self.b1)
+        self.amplitude2 = hypot(self.a2, self.b2)
+        self.phase1 = arctan2(self.b1, self.a1)
+        self.phase2 = arctan2(self.b2, self.a2)
         
         delta = abs(self.w1 - self.w2)
         

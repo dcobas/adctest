@@ -13,7 +13,8 @@ import cPickle
 
 class SingleToneSignal(Signal):
     """A class that represent a time-domain sampled signal, and also holds many
-    WindowedSignal that represent the signal in frequency domain. 
+    WindowedSignal that represent the signal in frequency domain, using 
+    different window functions. 
     """
 
     """maximum tolerable resolution for a histogram"""
@@ -49,12 +50,12 @@ class SingleToneSignal(Signal):
     
     def items(self):
         output = super(SingleToneSignal, self).items()
-                
-        # output.append(('Peak at', "%f", self.w0index))
-        # output.append(('Input frequency', "%.6f Hz", self.w0/2/pi))
-        # output.append(('Beta', "%f", self.beta))
-        output.append(('Amplitude', "%f", self.amplitude))
-        output.append(('Phase', "%f", self.phase))
+        
+        output.append(('Input frequency [0]', '%.5f Hz', self.w0/(2*pi)))
+        output.append(('Peak [0]', '%d', self.w0index))
+        output.append(('Amplitude [0]', "%f", self.amplitude))
+        output.append(('Phase [0]', "%f", self.phase))
+        output.append(('DC [0]', "%f", self.C)) 
         output.append(('Max DNL', "%f ", self.maxDNL))
         output.append(('Max INL', "%f ", self.maxINL))
         output.append(('Theoretical SNR', "%.2f dB", self.thSNR))
@@ -68,9 +69,6 @@ class SingleToneSignal(Signal):
         precalculate method for each window function we know."""
         
         if self.fullnsamples > 0:
-            # remove DC component
-            # self.fulldata -= (max(self.fulldata) +min(self.fulldata))/2.
-            
             # calculate the |fft|
             self.fulldft = abs(fft.fft(self.fulldata))
             
@@ -103,18 +101,17 @@ class SingleToneSignal(Signal):
             
             # initial frequency guess
             w0 = freqSample * float(self.w0index)/self.nsamples
-            # print "Frequency initial guess ->", w0 
             
             # fit the sine 
             self.w0, self.A, self.B, self.C  = Sinefit.sinefit4(data, 1.0/rate, w0, 1e-7)
-            # print "Frequency fit ->", self.w0
+            self.amplitude = hypot(self.A, self.B)
+            self.phase = arctan2(self.B, self.A)
             
             # limit data removing incoherency
             self.w0index = self.w0 /freqSample * self.nsamples
             self.limit = floor(0.5 + N*int(self.w0index)/self.w0index)
             self.data = data[:self.limit]
             self.nsamples = len(self.data)  
-            # print "limit is:", self.limit  
         
         # First of all evaluate the histograms
         skip = False
@@ -130,6 +127,7 @@ class SingleToneSignal(Signal):
         else:
             self.DNL, self.maxDNL = self._DNL()
             self.INL, self.maxINL = self._INL()
+        
         skip = False
         
         # ..theoretical SNR and process gain
@@ -142,7 +140,7 @@ class SingleToneSignal(Signal):
         for i in WindowFunction.windows.keys():
             self.windowed[i] = self.precalculate(i)
     
-    @timeit
+    #@timeit
     def precalculate(self, windowName):
         """Evaluates all the parameters for a particular window function. 
         windowName: a string containing the name of the window function
@@ -150,7 +148,6 @@ class SingleToneSignal(Signal):
         Returns a WindowFunction object, or None if windowName is not valid."""
 
         output = WindowedSignal()
-        
         
         if windowName not in WindowFunction.windows.keys():
             return None 
@@ -163,8 +160,6 @@ class SingleToneSignal(Signal):
         output.rate = self.rate
         
         window = WindowFunction.windows[windowName]
-        
-        # print len(self.data), self.nsamples
         output.data = self.data * window[self.nsamples]
 
         output.dft = fft.fft(output.data)
@@ -175,12 +170,12 @@ class SingleToneSignal(Signal):
         
         output.ldft = 10*log10(output.dft)
         output.ludft = 10*log10(output.udft)
-        # print output.ldft[:50]
+        
         output.w0 = w0 = self.w0
         output.w0index = w0index = self.w0index
-        self.amplitude = amplitude = hypot(self.A, self.B)
-        self.phase = phase = arctan2(self.B, self.A)
-        
+        output.amplitude = amplitude = hypot(self.A, self.B)
+        output.phase = phase = arctan2(self.B, self.A)
+        output.C = self.C
         A, B, C = self.A, self.B, self.C
         
         # THD
@@ -201,16 +196,13 @@ class SingleToneSignal(Signal):
         output.noiseFloor = dB(mean(filteredNoise))
         
         output.signalPower = (norm(output.dft)**2)/self.nsamples
-        # output.signalPower *= output.signalPower / self.nsamples
         
         time = arange(0, self.nsamples, dtype=float)/self.rate
         thSin = C + A * cos(w0*time) + B * sin(w0*time)
         output.th = copy(thSin)
         
-        #noise = self.data - thSin
-        
         noiseMask = array(ones(len(output.dft)))
-        noiseMask[0] = 0 # shouldn't be necessary
+        noiseMask[0] = 0
         noiseMask[w0index] = 0
         noiseMask[-w0index] = 0
         for i in thindex: noiseMask[int(i)] = 0
@@ -218,10 +210,8 @@ class SingleToneSignal(Signal):
         noise = where(noiseMask, self.data, 0)
         output.noisePower = (norm(noise)**2) / self.nsamples
         
-        # now we can evaluate SNR = max component - noise floor - process gain
-        #output.SNR = 10*log10(output.signalPower/output.noisePower)
-        num = output.signalPower
-        output.SNR = 20*log10(num/output.noisePower)
+        # SNR
+        output.SNR = 20*log10(output.signalPower/output.noisePower)
         
         # now it's time for SINAD
         rmsNoise = sqrt(sum((self.data -thSin)**2)/len(self.data))
@@ -241,14 +231,13 @@ class SingleToneSignal(Signal):
         
         output.SFDR = 10*log10(output.dft[w0index]/secondPeak)
         
-        #output.report()
         return output
     
     def histogram_resolution(self):
         """Upper bound to the histogram's length."""
         return min(self.MAXRES , 2**self.nbits)
         
-    @timeit
+    #@timeit
     def _histogram(self):
         """Compute histogram of a sampled signal
 
@@ -258,13 +247,12 @@ class SingleToneSignal(Signal):
 
            returns: an array of histogram_resolution() numbers (frequencies)
         """
-        bins = self.histogram_resolution()#2**self.nbits
+        bins = self.histogram_resolution()
         hist, discard = histogram(self.data, bins)
         
-        print "real", len(hist) -2
         return hist[1:-1]
 
-    @timeit
+    #@timeit
     def _ideal_histogram(self):
         """Produce an ideal vector of frequencies (histogram)    for the
         nsamples samples of a perfect nbits ADC. 
@@ -286,18 +274,15 @@ class SingleToneSignal(Signal):
         
         result =  (n * Mt / pi)
         
-        #print "len(result):", len(result)
-        #print result
-        
         return result[2:]
         
-    @timeit
+    #@timeit
     def _DNL(self):
         """Evaluate DNL, needs real and ideal histrograms."""
         dnl = (self.realHistogram/self.idealHistogram) -1
         return dnl, max(abs(dnl))
     
-    @timeit
+    #@timeit
     def _INL(self):
         """Evaluate INL, needs DNL."""
         inl = cumsum(self.DNL)

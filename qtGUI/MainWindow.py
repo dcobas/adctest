@@ -24,12 +24,6 @@ from PyQt4.Qwt5 import QwtPlotGrid
 import time
 
 class MainWindow(QMainWindow):
-    # nell'ordine
-    tabs  = ((True,  True,  True,  True,  True, False, False),
-             (True, False, False, False, False,  True, False),
-             (True, False, False, False, False, False,  True),
-             (True, False, False, False, False, False, False))
-    
     def window(self, i = None):
         if i is None:
             i = int(self.ui.freqBar.value())
@@ -45,7 +39,12 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self, parent)
         self.ui =  MainUI.Ui_MainWindow()
         self.ui.setupUi(self)
-                
+        
+        self.modes = (("Single tone performances",       SingleToneSignal, self.updateST),
+                     ("Two tones intermodulation",      TwoToneSignal, self.updateTT))
+        
+        self.ui.modeBox.addItems(map(lambda x: x[0], self.modes))
+        
         # chain hooks
         self.blueprints = {'file': self.filePlan,
                            'synth': self.synthPlan,
@@ -106,7 +105,6 @@ class MainWindow(QMainWindow):
         self.setupGraph('dnl',  ["&DNL", "Value", "Occurrencies"], (False, False))
         self.setupGraph('inl',  ["&INL", "Value", "Occurrencies"], (False, False))
         self.setupGraph('hist', ["&Histograms", "Value", "Occurrencies"], (False, False))
-        self.setupGraph('ttm',  ["&Two Tone", "Frequency [Hz]", "Signal [dB]"], (False, False))
         self.setupGraph('ft1',   ["Frequency response (&amplitude)", "Frequency [Hz]", ""], (False, False))
         self.setupGraph('ft2',   ["Frequency response (&quality)", "Frequency [Hz]", ""], (False, False))
         
@@ -126,18 +124,19 @@ class MainWindow(QMainWindow):
         self.setupCurve("hist", "real", "Real Histogram", Qt.blue, QwtPlotCurve.Sticks)
         self.setupCurve("hist", "ideal", "Ideal Histogram", Qt.red, QwtPlotCurve.Sticks)
         
-        self.setupCurve("ttm", "original", "Amplitude", Qt.blue, QwtPlotCurve.Sticks)
+        # self.setupCurve("ttm", "original", "Amplitude", Qt.blue, QwtPlotCurve.Sticks)
         
         self.setupCurve("ft1", "original", "Amplitude", Qt.blue)
+        self.setupCurve("ft1", "first", "Amplitude [1]", Qt.blue)
+        self.setupCurve("ft1", "second", "Amplitude [2]", Qt.red)
         
+        self.setupCurve("ft2", "imd", "IMD", Qt.blue)
         self.setupCurve("ft2", "snr", "SNR", Qt.blue)
         self.setupCurve("ft2", "sinad", "SINAD", Qt.black)
         self.setupCurve("ft2", "thd", "THD", Qt.red)
         
         for i in self.order:
             self.ui.tabWidget.addTab(self.plots[i][0], self.plots[i][1].tabName)  
-        
-        # self.update()
     
     ############################################################################
     ## Dialogs
@@ -148,7 +147,6 @@ class MainWindow(QMainWindow):
         status = ms.exec_() == QDialog.Accepted
         
         if not status:
-            print 'User cancel'
             return None
         
         return ms.generatePrefs()
@@ -159,12 +157,10 @@ class MainWindow(QMainWindow):
         status = source.exec_() == QDialog.Accepted
         
         if not status:
-            print 'User cancel'
             return
         
         # get the output
         plan = source.answer()
-        print plan
         
         self.blueprints[plan]()
     
@@ -317,8 +313,17 @@ class MainWindow(QMainWindow):
         
         print 'Data fetch complete, elaboration is beginning'
         
-        decision = SingleToneSignal
-        self.signals = [decision(bits, rate, i) for i in data]
+        print self.wave.getType()
+        
+        if self.chain in ('adc', 'file'):        
+            self.decision = self.modes[self.ui.modeBox.currentIndex()][1]
+        else:
+            if self.wave.getType() == SineWaveform:
+                self.decision = SingleToneSignal
+            else:
+                self.decision = TwoToneSignal
+        
+        self.signals = [self.decision(bits, rate, i) for i in data]
         
         if len(data) > 1:
             avgItems = self.signals[0].items()
@@ -331,17 +336,21 @@ class MainWindow(QMainWindow):
             for j in xrange(len(d)):
                 avgItems[j] = ('Avg. ' + avgItems[j][0], avgItems[j][1], d[j])
             
-            avgItems2 = self.signals[0].items()
-            d = array(map(lambda x: x[2], avgItems2))
-            
-            for s in self.signals[1:]:
-                d += array(map(lambda x: x[2], s.items()))
-            d = d/float(len(self.signals))
-            
-            for j in xrange(len(d)):
-                avgItems2[j] = ('Avg. ' + avgItems2[j][0], avgItems2[j][1], d[j])
+            if self.decision == SingleToneSignal:
+                avgItems2 = self.signals[0][None].items()
+                d = array(map(lambda x: x[2], avgItems2))
+                
+                for s in self.signals[1:]:
+                    d += array(map(lambda x: x[2], s[None].items()))
+                d = d/float(len(self.signals))
+                
+                for j in xrange(len(d)):
+                    avgItems2[j] = ('Avg. ' + avgItems2[j][0], avgItems2[j][1], d[j])
+            else:
+                avgItems2 = []
         
-            self.avgItems = [QTreeWidgetItem([i[0], i[1] % i[2]]) for i in avgItems + avgItems2]
+            self.ui.avgList.clear()
+            self.avgItems = [QTreeWidgetItem([i[0], i[1] % i[2]]) for i in (avgItems + avgItems2)]
             self.ui.avgList.addTopLevelItems(self.avgItems[:])
             self.ui.avgList.show()
             self.ui.freqBar.show()
@@ -358,14 +367,15 @@ class MainWindow(QMainWindow):
         self.updatePlots()
     
     def updatePlots(self, *args, **kwargs):
-        self.updateST()
-        self.redrawPlotsFR()
+        if self.decision == SingleToneSignal:
+            self.updateST()
+        else:
+            self.updateTT()
     
     def fetchFile(self):
         return readFile(self.fileName)
     
     def fetchSynth(self):
-        print 'fetchSynth'
         self.frequencies = frequencies = self.fcCreateList()
         
         print frequencies
@@ -409,7 +419,7 @@ class MainWindow(QMainWindow):
     def fetchADC(self):
         bits, rate, wave = self.adcAcquire()
         
-        return bits, rate, wave
+        return bits, rate, (wave, )
     
     ############################################################################
     ## GUI setup
@@ -546,8 +556,6 @@ class MainWindow(QMainWindow):
         return enabled, self.realHistogram, self.idealHistogram, self.DNL, self.maxDNL, self.INL, self.maxINL
     
     def redrawPlotsST(self, *args, **kwargs):
-        print 'redrawPlotsST'
-        
         i = int(self.ui.freqBar.value())
         x = self.signals[i].nsamples
         
@@ -565,14 +573,46 @@ class MainWindow(QMainWindow):
         
         hRange = arange(len(self.signals[i].DNL))
         self['dnl'].curves['original'].setData(hRange, self.signals[i].DNL)
+        self['dnl'].curves['original'].show()
         self['dnl'].replot()
         self['inl'].curves['original'].setData(hRange, self.signals[i].INL)
+        self['inl'].curves['original'].show()
         self['inl'].replot()
         hRange = arange(len(self.signals[i].realHistogram))
         self['hist'].curves['real'].setData(hRange, self.signals[i].realHistogram)
         self['hist'].replot()
         self['hist'].curves['ideal'].setData(hRange, self.signals[i].idealHistogram)
         self['hist'].replot()
+        
+        m = len(self.signals)
+        
+        if m == 1: 
+            for c in self['ft1'].curves.values():
+                c.hide()
+            for c in self['ft2'].curves.values():
+                c.hide()
+        else:
+            f = array(self.frequencies)
+            amp = array([i.amplitude for i in self.signals])
+            snr = array([self.window(i).SNR for i in self.signals])
+            sinad = array([self.window(i).SINAD for i in self.signals])
+            thd = array([self.window(i).THD for i in self.signals])
+            
+            self['ft1'].curves['original'].setData(f, amp)
+            self['ft1'].curves['original'].show()
+            self['ft1'].curves['first'].hide()
+            self['ft1'].curves['second'].hide()
+            
+            self['ft2'].curves['snr'].setData(f, snr)
+            self['ft2'].curves['sinad'].setData(f, sinad)
+            self['ft2'].curves['thd'].setData(f, thd)
+            self['ft2'].curves['snr'].show()
+            self['ft2'].curves['sinad'].show()
+            self['ft2'].curves['thd'].show()
+            self['ft2'].curves['imd'].hide()
+        
+        self['ft1'].replot()
+        self['ft2'].replot()
     
     def redrawPlotsTT(self, *args, **kwargs):
         i = int(self.ui.freqBar.value())
@@ -584,34 +624,45 @@ class MainWindow(QMainWindow):
         self['time'].replot()
 
         freqRange = arange(x/2)
-        self['ttm'].curves['original'].setData(freqRange, self.signals[i].lfft[:x/2])
-        self['ttm'].replot()
-    
-    def redrawPlotsFR(self, *args, **kwargs):
+        self['freq'].curves['original'].setData(freqRange, self.signals[i].lfft[:x/2])
+        self['freq'].replot()
+        
+        # hide stuff
+        self['dnl'].curves['original'].hide()
+        self['hist'].replot()
+        self['inl'].curves['original'].hide()
+        self['hist'].replot()
+        
         m = len(self.signals)
         
         if m == 1: 
-            return
+            for c in self['ft1'].curves.values():
+                c.hide()
+            for c in self['ft2'].curves.values():
+                c.hide()
+        else:
+            f = array(self.frequencies)
+            amp1 = array([i.amplitude1 for i in self.signals])
+            amp2 = array([i.amplitude2 for i in self.signals])
+            imd = array([i.imd for i in self.signals])
             
-        f = array(self.frequencies)
-        amp = array([i.amplitude for i in self.signals])
-        snr = array([self.window(i).SNR for i in self.signals])
-        sinad = array([self.window(i).SINAD for i in self.signals])
-        thd = array([self.window(i).THD for i in self.signals])
+            self['ft1'].curves['first'].setData(f, amp1)
+            self['ft1'].curves['second'].setData(f, amp2)
+            
+            self['ft1'].curves['original'].hide()
+            self['ft1'].curves['first'].show()
+            self['ft1'].curves['second'].show()
+            
+            self['ft2'].curves['imd'].setData(f, imd)
+            
+            self['ft2'].curves['snr'].hide()
+            self['ft2'].curves['sinad'].hide()
+            self['ft2'].curves['thd'].hide()
+            self['ft2'].curves['imd'].show()
         
-        print f
-        print amp
-        print snr
-        print sinad
-        print thd
-        
-        self['ft1'].curves['original'].setData(f, amp)
         self['ft1'].replot()
-        
-        self['ft2'].curves['snr'].setData(f, snr)
-        self['ft2'].curves['sinad'].setData(f, sinad)
-        self['ft2'].curves['thd'].setData(f, thd)
         self['ft2'].replot()
+    
 
         
     
