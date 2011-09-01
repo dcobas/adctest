@@ -79,6 +79,7 @@ class Agilent33250A(Generator):
     def command(self, what):
         '''Send a (list of) command(s) to the device: a command is a string, and
         this function appends automatically a new line.'''
+        print what
         if len(what) == 0: 
             return
         
@@ -129,21 +130,29 @@ class Agilent33250A(Generator):
             if type(f) in (tuple, list):
                 if len(f) == 2:
                     f, n = f
+                    if n[0] != ':':
+                        n = ":"+n
                 else:
                     return
+            else:
+                n = ''
+            
             if type(f) != str:
                 return
+                
             f = f.upper()
             
             if ' ' in f:
                 f, n = f.split(' ')
-            else: 
+                if n[0] != ':':
+                    n = ":"+n
+            elif ':' not in n: 
                 n = ''
             
             if f not in self.functionList: 
                 return
             
-            self.command("FUNC %s %s" % (f, n))
+            self.command("FUNC %s%s" % (f, n))
         
         return locals()
     

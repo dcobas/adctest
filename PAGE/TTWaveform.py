@@ -6,7 +6,32 @@ import Pyro4
 import Pyro4.util
 import sys
 import commands
+def gcd(a, b):
+    """Return greatest common divisor using Euclid's Algorithm."""
+    while b:      
+        a, b = b, a % b
+    return a
 
+def lcm(a, b):
+    """Return lowest common multiple."""
+    return a * b // gcd(a, b)
+def frac(x, n):
+    AA = 0
+    BB = 1
+    A  = 1
+    B  = 0
+    for i in range(n):
+        a = int(math.floor(x))
+        
+        try:
+            x = 1/(x-a)
+            AA, A = A, AA + a * A
+            BB, B = B, BB + a * B
+        except:
+            return
+        
+        yield (x, a, A, B,)
+                
 class TTWaveform(Waveform.Waveform):
     def get(self, what):
         return self.__getattribute__(what)
@@ -34,6 +59,23 @@ class TTWaveform(Waveform.Waveform):
         
         return (s/lsb).astype(int)
         
+    def generatePeriod(self, nbits, samples, fsr):
+        A = self.amplitude
+        C = self.dc
+        # r1, r2 = list(frac(self.ratio, 7))[-1][2:]
+        
+        # print r1, r2
+        #print 'Samples:', samples*self.ratio*r2
+        
+        freq = 2./(self.ratio -1.)
+        
+        t = arange(samples*freq, dtype=float)/samples
+        s = A*sin(2*pi*t) +A*sin(2*pi*self.ratio*t) +C
+        
+        lsb = fsr/(2**nbits)
+        
+        return (s/lsb).astype(int), self.frequency/freq
+    
     def scale(self, factor):
         """Multiply the frequency by factor"""
         self.frequency *= factor

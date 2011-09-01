@@ -31,6 +31,19 @@ class SineWaveform(Waveform.Waveform):
         
         return (s/lsb).astype(int)
     
+    
+    def generatePeriod(self, nbits, samples, fsr):
+        f = self.frequency
+        A = self.amplitude
+        C = self.dc
+        
+        t = arange(samples, dtype=float)/samples
+        s = A*sin(2*pi*t) +C
+        
+        lsb = fsr/(2**nbits)
+        
+        return (s/lsb).astype(int), f
+        
     def scale(self, factor):
         """Multiply the frequency by factor."""
         self.frequency *= factor

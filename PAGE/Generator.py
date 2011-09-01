@@ -15,7 +15,9 @@ class Generator(Item):
     # this dictionary is used to map data types into function which can
     # translate such type of data into something the generator can understand.
     adaptDict = {}
-    
+    def play(self, wave):
+        return
+       
     def adaptKeys(self):
         """Returns all data types supported."""
         return self.adaptDict.keys()
