@@ -1,5 +1,15 @@
 from Signal import *
 
+def gcd(a, b):
+    """Return greatest common divisor using Euclid's Algorithm."""
+    while b:      
+        a, b = b, a % b
+    return a
+
+def lcm(a, b):
+    """Return lowest common multiple."""
+    return a * b // gcd(a, b)
+
 class TwoToneSignal(Signal):
     """A class that represent a time-domain sampled signal with two sinusoids
     with similiar frequenciess. 
@@ -75,6 +85,14 @@ class TwoToneSignal(Signal):
         self.phase1 = arctan2(self.b1, self.a1)
         self.phase2 = arctan2(self.b2, self.a2)
         
+        # cut right now
+        N1 = floor(0.5 + 2*pi*self.rate/self.w1)
+        N2 = floor(0.5 + 2*pi*self.rate/self.w2)
+        N0 = lcm(N1, N2)
+        
+        N = N -(N%N0)
+        # while (N0 % 2) == 1 and N 
+        
         delta = abs(self.w1 - self.w2)
         
         i1 = min([self.w1, self.w2]) - delta
@@ -94,7 +112,8 @@ class TwoToneSignal(Signal):
         self.imd = 10*log10(meaningful/interferences)
         
         # fix incoherency
-        self.report()
+        # self.report()
+        
         
         fd =  abs(self.w1 +  self.w2)/4./pi
         print "fd is", fd   
@@ -106,30 +125,6 @@ class TwoToneSignal(Signal):
         limit = floor(self.nsamples*factor)
         print "limit is", limit
         
-        
         return  
         
-        self.data = self.fulldata[:limit]
-        self.nsamples = limit
-        
-        ff = abs(fft.fft(self.data))
-        lbnd = max(ff) * 10e-12
-        self.fft = ff = where(ff < lbnd, 10e-12, ff) 
-        
-        hff = ff[:len(ff)/2]
-        
-        self.lfft = lff = 10*log10(ff)
-        
-        self.m1 = m1 = argmax(hff); 
-        self.m2 = m2 = argmax(hstack([hff[:m1-1], array([0, 0, 0]), hff[m1+2:]]))
-        
-        self.tow1 = tow1 = 2*pi*self.rate*float(m1)/self.nsamples
-        self.tow2 = tow2 = 2*pi*self.rate*float(m2)/self.nsamples
-        
-        (self.w1, self.a1, self.b1), (self.w2, self.a2, self.b2), self.c0 = \
-            Sinefit.doubleSinefit4matrix(self.data, self.rate**-1, tow1, tow2)
-        
-        fd =  abs(self.w1 - self.w2)/2./pi
-        print "fd is", fd   
-        return
 

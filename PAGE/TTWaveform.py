@@ -6,6 +6,7 @@ import Pyro4
 import Pyro4.util
 import sys
 import commands
+
 def gcd(a, b):
     """Return greatest common divisor using Euclid's Algorithm."""
     while b:      
