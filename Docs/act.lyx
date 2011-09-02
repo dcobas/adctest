@@ -1095,7 +1095,8 @@ n[k] & = & x[k]-n[k]
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Labeling
+\labelwidthstring 00.00.0000
 At this point we calculate:
 \begin_inset Formula 
 \begin{eqnarray*}
@@ -1236,16 +1237,12 @@ The PAGE API acts as a bridge between various devices with different purpose
  in order to achieve its objective.
 \end_layout
 
-\begin_layout Subsection
-Introduction
-\end_layout
-
 \begin_layout Standard
 For a better description of the API use the help interface of Python, since
  the code is full of docstrings.
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Requisites
 \end_layout
 
@@ -1265,7 +1262,7 @@ Python
 Pyro4
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Structure of the API
 \end_layout
 
@@ -1316,25 +1313,78 @@ Introduction
 \begin_layout Standard
 This program helps to test ADC in a very detailed yet easy way, with a usable
  interface and high flexibility.
- The PAGE API
+ 
 \end_layout
 
 \begin_layout Standard
 ACT works with chains: a particular sequence of operations to execute in
  order to achieve a different result.
- (nice dot graph here) The majority of the operations are executed by PAGE
- items.
-\end_layout
-
-\begin_layout Subsection
-Single tone mode
+ The majority of the operations are executed by PAGE items.
+ To use ACT, one must choose a chain between four of them.
+ ACT will then offer other possibilities to fine-tune the analysis, or to
+ perform a frequency sweep, too.
 \end_layout
 
 \begin_layout Standard
-The data supplied to the application is the digitization of a sinusoidal
- wave.
+The tool can keep track of various readings at different frequencies, when
+ applicable.
+\end_layout
+
+\begin_layout Subsection
+ACT items: SignalProcessing module
+\end_layout
+
+\begin_layout Standard
+ACT has its own set of items in the SignalProcessing module.
+ This module implements all the algorithm described before.
+ Basically, there are three main components:
+\end_layout
+
+\begin_layout Description
+Signal this class will hold data from a signal, nothing more and nothing
+ less.
+ 
+\end_layout
+
+\begin_layout Description
+SingleToneSignal this class, which inherits from Signal, computes parameters
+ assuming that there is only one sinusoidal wave in the digitized data.
+ 
+\end_layout
+
+\begin_layout Description
+TwoToneSignal this class, which also inherits from Signal, computes the
+ IMD, assuming there are two different tones in the signal.
+\end_layout
+
+\begin_layout Subsection
+Synthetic data chain
+\end_layout
+
+\begin_layout Standard
+This chain is composed only by a waveform.
+ It's used to test the application and its algorithms.
+ 
+\end_layout
+
+\begin_layout Standard
+The user must select a waveform object and configure it, to choose its parameter
+s.
+ When ready, the application will compute parameters accordingly to the
+ wafeform type, selecting either SingleToneSignal or TwoToneSignal.
+ The user can then configure the waveform generation parameters on the control
+ panel.
+\end_layout
+
+\begin_layout Subsection
+File chain
+\end_layout
+
+\begin_layout Standard
+The data is read from a file: as one can guess, this chain won't use PAGE
+ items.
  The file structure is rather easy, and contains all the information we
- need to compute everything:
+ need to compute everything, except the type of data it contains:
 \end_layout
 
 \begin_layout Standard
@@ -1394,6 +1444,48 @@ Fs sampling rate;
 data a list of integers that represent the signal, always preceded by a
  TAB character.
  
+\end_layout
+
+\begin_layout Standard
+The user has to choose which ACT item to use for the analysis.
+\end_layout
+
+\begin_layout Subsection
+Full chain
+\end_layout
+
+\begin_layout Standard
+This chain is composed by a Waveform item, a Generator item, a ADC item
+ and a Signal item.
+ 
+\end_layout
+
+\begin_layout Standard
+The waveform selected will be played by the chosen Generator; then the ADC
+ will read the data from the generator and will pass them to the application,
+ which will create one (or more) instance(s) of Signal; the application
+ will choose SingleToneSignal or TwoToneSignal depending on the chosen Waveform.
+\end_layout
+
+\begin_layout Standard
+This chain is by far the most complex one, but it also allows to fully test
+ the ADC (and, to some extents, the Generator itself!).
+\end_layout
+
+\begin_layout Subsection
+ADC only chain
+\end_layout
+
+\begin_layout Standard
+This chain is composed of a ADC item and a Signal item, which the user must
+ select.
+ The ADC will read data and then the application will load it into the user-sele
+cted Signal item.
+ 
+\end_layout
+
+\begin_layout Subsection
+Frequency 
 \end_layout
 
 \end_body
