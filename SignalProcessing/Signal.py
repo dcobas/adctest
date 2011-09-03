@@ -1,8 +1,11 @@
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
-
-__author__="Federico Asara"
-__date__ ="$Jul 11, 2011 2:39:38 PM$"
+__author__ = "Federico Asara"
+__copyright__ = "Copyright 2007, The Cogent Project"
+__credits__ = ["Federico Asara", "Juan David Gonzalez Cobas"]
+__license__ = "GPL2"
+__version__ = "1.0.0"
+__maintainer__ = "Federico Asara"
+__email__ = "federico.asara@gmail.com"
+__status__ = "Production"
 __doc__= """This module offers the Signal class, which simply store the output
 signal of an ADC, fed with a sinewave, with some other useful informations. 
 It is also capable to reverse incoherent sampling, in order to get more accurate

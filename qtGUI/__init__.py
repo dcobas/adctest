@@ -1,5 +1,11 @@
-__author__="Federico Asara"
-__date__ ="$Jul 11, 2011 5:22:02 PM$"
+__author__ = "Federico Asara"
+__copyright__ = "Copyright 2007, The Cogent Project"
+__credits__ = ["Federico Asara", "Juan David Gonzalez Cobas"]
+__license__ = "GPL2"
+__version__ = "1.0.0"
+__maintainer__ = "Federico Asara"
+__email__ = "federico.asara@gmail.com"
+__status__ = "Production"
 
 def start():
     import sys

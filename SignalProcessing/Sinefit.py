@@ -1,8 +1,11 @@
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
-
-__author__="federico"
-__date__ ="$Jul 11, 2011 2:40:18 PM$"
+__author__ = "Federico Asara"
+__copyright__ = "Copyright 2007, The Cogent Project"
+__credits__ = ["Federico Asara", "Juan David Gonzalez Cobas"]
+__license__ = "GPL2"
+__version__ = "1.0.0"
+__maintainer__ = "Federico Asara"
+__email__ = "federico.asara@gmail.com"
+__status__ = "Production"
 
 from numpy import *
 from scipy import optimize

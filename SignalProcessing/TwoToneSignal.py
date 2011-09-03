@@ -1,3 +1,12 @@
+__author__ = "Federico Asara"
+__copyright__ = "Copyright 2007, The Cogent Project"
+__credits__ = ["Federico Asara", "Juan David Gonzalez Cobas"]
+__license__ = "GPL2"
+__version__ = "1.0.0"
+__maintainer__ = "Federico Asara"
+__email__ = "federico.asara@gmail.com"
+__status__ = "Production"
+
 from Signal import *
 
 def gcd(a, b):
@@ -90,8 +99,37 @@ class TwoToneSignal(Signal):
         N2 = floor(0.5 + 2*pi*self.rate/self.w2)
         N0 = lcm(N1, N2)
         
-        N = N -(N%N0)
-        # while (N0 % 2) == 1 and N 
+        N = self.nsamples -(self.nsamples%N0)
+        
+        if N0 % 2:
+            print N0, 'is odd'
+            while ((N/N1 -N/N2) % 2) == 1:
+                print (N/N1 -N/N2), 'is odd'
+                N -= N0
+        else:
+            print N0, 'is even'
+        
+        ff = abs(fft.fft(self.fulldata))
+        lbnd = max(ff) * 10e-12
+        self.fft = ff = where(ff < lbnd, 10e-12, ff) 
+        
+        hff = ff[:len(ff)/2]
+        
+        self.lfft = lff = 10*log10(ff)
+        
+        self.m1 = m1 = argmax(hff); 
+        self.m2 = m2 = argmax(hstack([hff[:m1-1], array([0, 0, 0]), hff[m1+2:]]))
+        
+        self.tow1 = tow1 = 2*pi*self.rate*float(m1)/self.nsamples
+        self.tow2 = tow2 = 2*pi*self.rate*float(m2)/self.nsamples
+        
+        (self.w1, self.a1, self.b1), (self.w2, self.a2, self.b2), self.c0 = \
+            Sinefit.doubleSinefit4matrix(self.fulldata, self.rate**-1, tow1, tow2)
+        
+        self.amplitude1 = hypot(self.a1, self.b1)
+        self.amplitude2 = hypot(self.a2, self.b2)
+        self.phase1 = arctan2(self.b1, self.a1)
+        self.phase2 = arctan2(self.b2, self.a2)
         
         delta = abs(self.w1 - self.w2)
         
@@ -110,21 +148,5 @@ class TwoToneSignal(Signal):
         interferences = hypot(fi1, fi2)
         
         self.imd = 10*log10(meaningful/interferences)
-        
-        # fix incoherency
-        # self.report()
-        
-        
-        fd =  abs(self.w1 +  self.w2)/4./pi
-        print "fd is", fd   
-        
-        wModIndex = self.nsamples * fd / self.rate
-        print "wModIndex is", wModIndex 
-
-        factor = (wModIndex -(wModIndex % 2))/wModIndex
-        limit = floor(self.nsamples*factor)
-        print "limit is", limit
-        
-        return  
         
 
